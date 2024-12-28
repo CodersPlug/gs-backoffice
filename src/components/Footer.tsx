@@ -6,34 +6,34 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">About</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Acerca de</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Our Story</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Press</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Nuestra Historia</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Trabajá con Nosotros</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Prensa</a></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Soporte</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Safety Center</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Community</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Centro de Ayuda</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Centro de Seguridad</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Comunidad</a></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Cookie Policy</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Términos del Servicio</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Política de Privacidad</a></li>
+              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Política de Cookies</a></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Follow Us</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Seguinos</h3>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-600 hover:text-primary transition-colors">
                 <Twitter className="h-6 w-6" />
@@ -49,7 +49,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-center text-gray-600">© 2024 Pinspiration. All rights reserved.</p>
+          <p className="text-center text-gray-600">© 2024 Pinspiration. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

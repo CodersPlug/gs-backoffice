@@ -5,39 +5,39 @@ import PinCard from "@/components/PinCard";
 const pins = [
   {
     image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-    title: "Modern Workspace",
-    description: "A minimalist workspace setup perfect for remote work and creativity.",
-    author: "Sarah Johnson"
+    title: "Espacio de Trabajo Moderno",
+    description: "Un espacio de trabajo minimalista perfecto para el trabajo remoto y la creatividad.",
+    author: "Sara Johnson"
   },
   {
     image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    title: "Tech Essentials",
-    description: "Essential tech gadgets for the modern professional.",
-    author: "Mike Chen"
+    title: "Elementos Tecnológicos",
+    description: "Gadgets tecnológicos esenciales para el profesional moderno.",
+    author: "Miguel Chen"
   },
   {
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475",
-    title: "Circuit Beauty",
-    description: "The intricate beauty of modern technology captured in detail.",
-    author: "Alex Turner"
+    title: "Belleza de Circuitos",
+    description: "La belleza intrincada de la tecnología moderna capturada en detalle.",
+    author: "Alejandro Turner"
   },
   {
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    title: "Productive Setup",
-    description: "A clean and productive workspace arrangement for maximum focus.",
-    author: "Emma White"
+    title: "Configuración Productiva",
+    description: "Una disposición limpia y productiva del espacio de trabajo para máxima concentración.",
+    author: "Emma Blanco"
   },
   {
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    title: "Remote Work",
-    description: "The perfect remote work environment for digital nomads.",
-    author: "David Miller"
+    title: "Trabajo Remoto",
+    description: "El ambiente perfecto para nómades digitales.",
+    author: "David Molinari"
   },
   {
     image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    title: "Code Life",
-    description: "A developer's workspace showcasing the beauty of code.",
-    author: "Chris Black"
+    title: "Vida de Código",
+    description: "El espacio de trabajo de un desarrollador mostrando la belleza del código.",
+    author: "Carlos Negro"
   }
 ];
 
