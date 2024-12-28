@@ -1,4 +1,4 @@
-import { Search, BrainCog } from "lucide-react";
+import { Search, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -20,7 +20,7 @@ const Header = () => {
               <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
             <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
-              <BrainCog className="h-5 w-5" />
+              <Sparkle className="h-5 w-5" />
             </Button>
           </div>
         </div>
