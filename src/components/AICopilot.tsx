@@ -19,9 +19,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
+      inputRef.current.focus();
     }
   }, [isOpen]);
 
