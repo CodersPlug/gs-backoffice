@@ -5,49 +5,49 @@ import PinCard from "@/components/PinCard";
 const pins = [
   {
     image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-    title: "Espacio de Trabajo Moderno",
-    description: "Un espacio de trabajo minimalista perfecto para el trabajo remoto y la creatividad.",
+    title: "Proceso de Onboarding",
+    description: "Guía paso a paso para el proceso de incorporación de nuevos empleados a la empresa.",
     author: "Sara Johnson"
   },
   {
     image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    title: "Elementos Tecnológicos",
-    description: "Gadgets tecnológicos esenciales para el profesional moderno.",
+    title: "Política de Vacaciones",
+    description: "Documento detallado sobre las políticas y procedimientos para solicitud de vacaciones.",
     author: "Miguel Chen"
   },
   {
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475",
-    title: "Belleza de Circuitos",
-    description: "La belleza intrincada de la tecnología moderna capturada en detalle.",
+    title: "Manual de Marca",
+    description: "Guía completa sobre el uso correcto de la marca, logotipos y elementos visuales.",
     author: "Alejandro Turner"
   },
   {
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    title: "Configuración Productiva",
-    description: "Una disposición limpia y productiva del espacio de trabajo para máxima concentración.",
+    title: "Protocolo de Seguridad",
+    description: "Procedimientos y normas de seguridad para todas las instalaciones de la empresa.",
     author: "Emma Blanco"
   },
   {
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    title: "Trabajo Remoto",
-    description: "El ambiente perfecto para nómades digitales.",
+    title: "Proceso de Ventas",
+    description: "Documentación detallada del proceso de ventas y atención al cliente.",
     author: "David Molinari"
   },
   {
     image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    title: "Vida de Código",
-    description: "El espacio de trabajo de un desarrollador mostrando la belleza del código.",
+    title: "Manual de Sistemas",
+    description: "Guía técnica para el uso y mantenimiento de los sistemas internos.",
     author: "Carlos Negro"
   }
 ];
 
 const Index = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {pins.map((pin, index) => (
             <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <PinCard {...pin} />
