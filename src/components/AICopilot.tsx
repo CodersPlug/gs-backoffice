@@ -18,8 +18,13 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    // Focus input when drawer opens
+    if (isOpen) {
+      // Small delay to ensure the drawer is fully rendered
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -55,14 +60,6 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:w-[400px] p-0">
         <SheetHeader className="relative p-4 border-b">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
           <SheetTitle>Asistente AI</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col h-[calc(100vh-4rem)]">
