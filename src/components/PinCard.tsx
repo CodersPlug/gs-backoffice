@@ -36,8 +36,8 @@ const PinCard = ({ image, title, description, author }: PinCardProps) => {
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">By {author}</span>
-              <div className="text-xs text-gray-400">Click to view details</div>
+              <span className="text-xs text-gray-500">Por {author}</span>
+              <div className="text-xs text-gray-400">Clic para ver detalles</div>
             </div>
           </div>
         </div>
@@ -52,7 +52,7 @@ const PinCard = ({ image, title, description, author }: PinCardProps) => {
             <p className="text-sm text-gray-600 flex-grow">{description}</p>
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">By {author}</span>
+                <span className="text-xs text-gray-500">Por {author}</span>
                 <button className="p-2 rounded-full hover:bg-gray-50 transition-colors">
                   <MessageCircle className="h-4 w-4 text-gray-500" />
                 </button>
