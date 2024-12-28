@@ -7,7 +7,7 @@ const Header = () => {
       <div className="container mx-auto px-4 h-full">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-900">La Posta Backoffice</h1>
+            <h1 className="text-xl font-semibold text-gray-900">La Posta BackOffice</h1>
             <nav className="hidden md:flex space-x-4">
               <Button variant="ghost">Inicio</Button>
               <Button variant="ghost">Explorar</Button>
