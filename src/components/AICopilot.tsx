@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -54,9 +54,9 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="h-[80vh] animate-slide-in-right">
-        <DrawerHeader className="relative">
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-full sm:w-[400px] p-0">
+        <SheetHeader className="relative p-4 border-b">
           <Button
             variant="ghost"
             size="icon"
@@ -65,10 +65,10 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
           >
             <X className="h-4 w-4" />
           </Button>
-          <DrawerTitle>Asistente AI</DrawerTitle>
-        </DrawerHeader>
-        <div className="p-4 flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+          <SheetTitle>Asistente AI</SheetTitle>
+        </SheetHeader>
+        <div className="flex flex-col h-[calc(100vh-4rem)]">
+          <div className="flex-1 overflow-y-auto space-y-4 p-4">
             {conversation.map((msg, index) => (
               <div
                 key={index}
@@ -82,23 +82,25 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Escribe tu mensaje..."
-              className="flex-1 px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-            <Button onClick={handleSendMessage} disabled={isLoading || !message.trim()}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Escribe tu mensaje..."
+                className="flex-1 px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <Button onClick={handleSendMessage} disabled={isLoading || !message.trim()}>
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 };
 
