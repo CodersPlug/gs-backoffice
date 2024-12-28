@@ -8,11 +8,6 @@ const Header = () => {
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-semibold text-gray-900">La Posta BackOffice</h1>
-            <nav className="hidden md:flex space-x-4">
-              <Button variant="ghost">Inicio</Button>
-              <Button variant="ghost">Explorar</Button>
-              <Button variant="ghost">Crear</Button>
-            </nav>
           </div>
           
           <div className="flex items-center space-x-4">
