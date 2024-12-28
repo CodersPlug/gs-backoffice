@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 
 interface PinCardProps {
   image: string;
@@ -36,14 +36,6 @@ const PinCard = ({ image, title, description, author }: PinCardProps) => {
           <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="flex justify-between items-center">
               <span className="text-white font-medium truncate">{title}</span>
-              <div className="flex space-x-2">
-                <button className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
-                  <Heart className="h-4 w-4 text-white" />
-                </button>
-                <button className="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
-                  <Share2 className="h-4 w-4 text-white" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -59,14 +51,9 @@ const PinCard = ({ image, title, description, author }: PinCardProps) => {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">By {author}</span>
-                <div className="flex space-x-2">
-                  <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <MessageCircle className="h-4 w-4 text-gray-600" />
-                  </button>
-                  <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <Share2 className="h-4 w-4 text-gray-600" />
-                  </button>
-                </div>
+                <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                  <MessageCircle className="h-4 w-4 text-gray-600" />
+                </button>
               </div>
             </div>
           </div>
