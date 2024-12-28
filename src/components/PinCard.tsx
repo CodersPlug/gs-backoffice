@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, FileText } from "lucide-react";
+import { MessageCircle, FileText, Eye } from "lucide-react";
 
 interface PinCardProps {
   image: string;
@@ -36,7 +36,7 @@ const PinCard = ({ image, title, description }: PinCardProps) => {
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100">
             <div className="flex items-center justify-end">
-              <div className="text-xs text-gray-400">Clic para ver detalles</div>
+              <Eye className="h-4 w-4 text-gray-400" />
             </div>
           </div>
         </div>
