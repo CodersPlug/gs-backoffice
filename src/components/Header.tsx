@@ -28,6 +28,7 @@ const Header = () => {
               size="icon" 
               className="text-black hover:bg-primary/10 p-2"
               onClick={() => setIsAICopilotOpen(true)}
+              aria-label="Abrir Asistente AI"
             >
               <Sparkle className="h-8 w-8" />
             </Button>

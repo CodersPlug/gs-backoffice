@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,6 +15,15 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversation, setConversation] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
   const { toast } = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -36,7 +45,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please try again.",
+        description: "No se pudo obtener la respuesta del AI. Por favor, intenta de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -46,9 +55,17 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="h-[80vh]">
-        <DrawerHeader>
-          <DrawerTitle>AI Copilot</DrawerTitle>
+      <DrawerContent className="h-[80vh] animate-slide-in-right">
+        <DrawerHeader className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <DrawerTitle>Asistente AI</DrawerTitle>
         </DrawerHeader>
         <div className="p-4 flex flex-col h-full">
           <div className="flex-1 overflow-y-auto space-y-4 mb-4">
@@ -67,11 +84,12 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
           </div>
           <div className="flex gap-2">
             <input
+              ref={inputRef}
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Type your message..."
+              placeholder="Escribe tu mensaje..."
               className="flex-1 px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
             <Button onClick={handleSendMessage} disabled={isLoading || !message.trim()}>
