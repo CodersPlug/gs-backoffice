@@ -19,9 +19,8 @@ const Header = () => {
               />
               <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Bot className="mr-2" />
-              AI Assistant
+            <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
+              <Bot className="h-5 w-5" />
             </Button>
           </div>
         </div>
