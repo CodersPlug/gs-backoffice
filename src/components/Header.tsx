@@ -1,7 +1,11 @@
 import { Search, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import AICopilot from "./AICopilot";
 
 const Header = () => {
+  const [isAICopilotOpen, setIsAICopilotOpen] = useState(false);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
       <div className="container mx-auto px-4 h-full">
@@ -19,12 +23,22 @@ const Header = () => {
               />
               <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
-            <Button variant="ghost" size="icon" className="text-black hover:bg-primary/10 p-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-black hover:bg-primary/10 p-2"
+              onClick={() => setIsAICopilotOpen(true)}
+            >
               <Sparkle className="h-8 w-8" />
             </Button>
           </div>
         </div>
       </div>
+
+      <AICopilot 
+        isOpen={isAICopilotOpen} 
+        onClose={() => setIsAICopilotOpen(false)} 
+      />
     </header>
   );
 };
