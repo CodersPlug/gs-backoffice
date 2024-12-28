@@ -20,7 +20,7 @@ const PinCard = ({ image, title, description }: PinCardProps) => {
   return (
     <>
       <div
-        className="group relative w-full rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-100 shadow-sm"
+        className="group relative w-full rounded-lg overflow-hidden cursor-pointer transform transition-all duration-500 hover:-translate-y-1 bg-white border border-gray-100 shadow-sm"
         onClick={() => setIsOpen(true)}
       >
         <div className="relative p-4">
@@ -42,7 +42,7 @@ const PinCard = ({ image, title, description }: PinCardProps) => {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px] animate-in zoom-in-90 duration-300">
+        <DialogContent className="sm:max-w-[600px] animate-in zoom-in-90 duration-700 ease-in-out">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
           </DialogHeader>
