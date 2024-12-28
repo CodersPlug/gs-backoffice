@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { MessageCircle, FileText, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PinCardProps {
   image: string;
@@ -9,21 +15,14 @@ interface PinCardProps {
 }
 
 const PinCard = ({ image, title, description }: PinCardProps) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div
-      className="group relative w-full rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-100 shadow-sm"
-      onClick={() => setIsFlipped(!isFlipped)}
-      style={{ perspective: "1000px" }}
-    >
+    <>
       <div
-        className={`relative w-full transition-transform duration-500 transform-gpu ${
-          isFlipped ? "rotate-y-180" : ""
-        }`}
-        style={{ transformStyle: "preserve-3d" }}
+        className="group relative w-full rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:-translate-y-1 bg-white border border-gray-100 shadow-sm"
+        onClick={() => setIsOpen(true)}
       >
-        {/* Front of card */}
         <div className="relative p-4">
           <div className="flex items-start space-x-3 mb-3">
             <div className="p-2 bg-gray-50 rounded-lg">
@@ -40,26 +39,32 @@ const PinCard = ({ image, title, description }: PinCardProps) => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Back of card */}
-        <div
-          className="absolute inset-0 bg-white rounded-lg p-4 transform rotate-y-180 backface-hidden"
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          <div className="h-full flex flex-col">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-            <p className="text-sm text-gray-600 flex-grow">{description}</p>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-end">
-                <button className="p-2 rounded-full hover:bg-gray-50 transition-colors">
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[600px] animate-in zoom-in-90 duration-300">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="space-y-4">
+              <p className="text-gray-600">{description}</p>
+              <div className="flex justify-end">
+                <button 
+                  className="p-2 rounded-full hover:bg-gray-50 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                  }}
+                >
                   <MessageCircle className="h-4 w-4 text-gray-500" />
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
