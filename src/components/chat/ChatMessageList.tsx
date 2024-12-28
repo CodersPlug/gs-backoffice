@@ -1,3 +1,5 @@
+import ChatMessage from './ChatMessage';
+
 interface ChatMessageListProps {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
