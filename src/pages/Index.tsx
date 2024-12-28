@@ -43,10 +43,10 @@ const pins = [
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       <Header />
       
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-y-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {pins.map((pin, index) => (
             <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>

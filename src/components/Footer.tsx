@@ -2,7 +2,7 @@ import { Github, Twitter, Instagram } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-white border-t border-gray-200 py-8 mt-16">
+    <footer className="bg-white border-t border-gray-200 py-6 mt-auto">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -48,7 +48,7 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="mt-8 pt-8 border-t border-gray-200">
+        <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-center text-gray-600">© 2024 Pinspiration. Todos los derechos reservados.</p>
         </div>
       </div>
