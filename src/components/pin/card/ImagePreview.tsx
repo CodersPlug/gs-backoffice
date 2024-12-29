@@ -6,17 +6,13 @@ interface ImagePreviewProps {
 }
 
 const ImagePreview = ({ image, sourceInfo }: ImagePreviewProps) => {
-  // Check if we have a valid image (either direct image or PDF snapshot)
-  const hasValidImage = Boolean(image) || (sourceInfo && isImageUrl(sourceInfo));
-  const hasSourceInfo = Boolean(sourceInfo);
-  
   // If there's no image or source info at all, don't render anything
-  if (!hasValidImage && !hasSourceInfo) {
+  if (!image && !sourceInfo) {
     return null;
   }
 
-  // If there's a source that's not an image (like a PDF), show document preview
-  if (hasSourceInfo) {
+  // If it's a PDF (has sourceInfo that's not an image URL), show document preview with snapshot
+  if (sourceInfo && !isImageUrl(sourceInfo)) {
     const fileName = sourceInfo?.split('/').pop() || 'Document';
     return (
       <div className="relative w-full mb-3 p-4 rounded-lg bg-gray-100 dark:bg-dark-muted/50 space-y-2">
@@ -30,11 +26,11 @@ const ImagePreview = ({ image, sourceInfo }: ImagePreviewProps) => {
           Archivo subido a través del Asistente AI
         </div>
         {image && (
-          <div className="relative w-full h-32 mt-2 rounded-lg overflow-hidden">
+          <div className="relative w-full h-32 mt-2 rounded-lg overflow-hidden bg-gray-200 dark:bg-dark-muted">
             <img
               src={image}
               alt="PDF preview"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         )}
@@ -42,7 +38,7 @@ const ImagePreview = ({ image, sourceInfo }: ImagePreviewProps) => {
     );
   }
 
-  // If we have a direct image (not a PDF), show it
+  // For direct images or image URLs in sourceInfo
   const imageToShow = image || sourceInfo;
   return (
     <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden">
