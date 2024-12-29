@@ -28,9 +28,19 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
-  // Don't show content if it's empty, contains URLs, or is just whitespace
+  // Parse content if it's a JSON string
+  let parsedContent;
+  try {
+    if (content) {
+      parsedContent = JSON.parse(content);
+    }
+  } catch (e) {
+    // If parsing fails, use content as is
+    parsedContent = null;
+  }
+
+  // Show content based on type
   const shouldShowContent = content && 
-    content.trim() !== '' &&
     !content.includes('[Ver archivo]') && 
     !content.includes('bamdlnybhcqkiihpwdlz.supabase.co') &&
     !content.includes('https://') &&
@@ -45,7 +55,13 @@ const PinCardContent = ({
         {description}
       </p>
 
-      {shouldShowContent && (
+      {shouldShowContent && parsedContent?.fullText && (
+        <div className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-3">
+          {parsedContent.fullText}
+        </div>
+      )}
+
+      {shouldShowContent && !parsedContent?.fullText && (
         <div className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-3">
           {content}
         </div>

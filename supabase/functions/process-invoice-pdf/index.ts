@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { parse } from 'https://esm.sh/pdf-parse@1.1.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,13 +33,22 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
     }
 
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    console.log('PDF fetched successfully, extracting text...');
+
+    // Extract text from PDF
+    const data = await parse(new Uint8Array(pdfBuffer));
+    const extractedText = data.text;
+    console.log('Extracted text:', extractedText);
+
     // Get the filename from the URL
     const filename = pdfUrl.split('/').pop() || 'document.pdf';
     
-    // Create a simple description
-    const description = `PDF document uploaded: ${filename}`;
+    // Create description with extracted text preview
+    const textPreview = extractedText.slice(0, 200) + (extractedText.length > 200 ? '...' : '');
+    const description = `PDF document: ${filename}\n\nPreview: ${textPreview}`;
     
-    // Update the kanban item with basic information
+    // Update the kanban item with extracted information
     const { error: updateError } = await supabase
       .from('kanban_items')
       .update({ 
@@ -46,7 +56,8 @@ serve(async (req) => {
         content: JSON.stringify({
           filename,
           uploadDate: new Date().toISOString(),
-          fileType: 'PDF'
+          fileType: 'PDF',
+          fullText: extractedText
         })
       })
       .eq('source_info', pdfUrl);
@@ -60,7 +71,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         message: 'PDF processed successfully',
-        description 
+        description,
+        extractedText 
       }),
       { 
         headers: { 
