@@ -1,6 +1,8 @@
 import React from 'react';
-import { Calendar, Clock, Tag, User, Link2, MessageCircle } from 'lucide-react';
+import { Calendar, Tag, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { isImageUrl } from '@/utils/urlUtils';
+import PinCardSourceLink from './PinCardSourceLink';
 
 interface PinCardContentProps {
   title: string;
@@ -25,26 +27,6 @@ const PinCardContent = ({
   progress = 0,
   sourceInfo
 }: PinCardContentProps) => {
-  // Function to check if the sourceInfo is an image URL
-  const isImageUrl = (url?: string) => {
-    if (!url) return false;
-    return url.match(/\.(jpeg|jpg|gif|png)$/) !== null;
-  };
-
-  const handleLinkClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  // Function to shorten URL
-  const shortenUrl = (url: string) => {
-    try {
-      const urlObj = new URL(url);
-      return `${urlObj.hostname}${urlObj.pathname.slice(0, 15)}${urlObj.pathname.length > 15 ? '...' : ''}`;
-    } catch {
-      return url.slice(0, 30) + (url.length > 30 ? '...' : '');
-    }
-  };
-
   return (
     <div className="flex-1 space-y-3">
       {sourceInfo && isImageUrl(sourceInfo) && (
@@ -104,13 +86,7 @@ const PinCardContent = ({
         )}
 
         {sourceInfo && !isImageUrl(sourceInfo) && (
-          <button
-            onClick={() => handleLinkClick(sourceInfo)}
-            className="flex items-center gap-1 hover:text-dark-accent transition-colors cursor-pointer"
-          >
-            <Link2 className="w-3 h-3" />
-            <span className="line-clamp-1 underline">{shortenUrl(sourceInfo)}</span>
-          </button>
+          <PinCardSourceLink sourceInfo={sourceInfo} />
         )}
       </div>
 
