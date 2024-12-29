@@ -31,6 +31,10 @@ const PinCardContent = ({
     return url.match(/\.(jpeg|jpg|gif|png)$/) !== null;
   };
 
+  const handleLinkClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="flex-1 space-y-3">
       {sourceInfo && isImageUrl(sourceInfo) && (
@@ -90,10 +94,13 @@ const PinCardContent = ({
         )}
 
         {sourceInfo && !isImageUrl(sourceInfo) && (
-          <div className="flex items-center gap-1">
+          <button
+            onClick={() => handleLinkClick(sourceInfo)}
+            className="flex items-center gap-1 hover:text-dark-accent transition-colors cursor-pointer"
+          >
             <Link2 className="w-3 h-3" />
-            <span className="line-clamp-1">{sourceInfo}</span>
-          </div>
+            <span className="line-clamp-1 underline">{sourceInfo}</span>
+          </button>
         )}
       </div>
 
