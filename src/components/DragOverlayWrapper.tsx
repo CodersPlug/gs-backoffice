@@ -1,11 +1,11 @@
 import { DragOverlay } from "@dnd-kit/core";
 import PinCard from "./PinCard";
-import { Pin } from "@/types/kanban";
+import { DraggablePin } from "@/types/kanban";
 import { UniqueIdentifier } from "@dnd-kit/core";
 
 interface DragOverlayWrapperProps {
   activeId: UniqueIdentifier | null;
-  activePinData: Pin | null;
+  activePinData: DraggablePin | null;
 }
 
 const DragOverlayWrapper = ({ activeId, activePinData }: DragOverlayWrapperProps) => {
@@ -14,7 +14,7 @@ const DragOverlayWrapper = ({ activeId, activePinData }: DragOverlayWrapperProps
   return (
     <DragOverlay>
       <div className="opacity-80 rotate-3 scale-105 transition-transform">
-        <PinCard {...activePinData} id={activeId} />
+        <PinCard {...activePinData} />
       </div>
     </DragOverlay>
   );

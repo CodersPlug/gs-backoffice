@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Pin } from "@/types/kanban";
+import { DraggablePin } from "@/types/kanban";
 
-type PinCardProps = Pin;
+interface PinCardProps extends DraggablePin {}
 
 const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
