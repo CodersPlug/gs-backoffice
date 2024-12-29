@@ -14,6 +14,7 @@ interface PinCardContentProps {
   assignedTo?: string;
   progress?: number;
   sourceInfo?: string;
+  image?: string;
 }
 
 const PinCardContent = ({ 
@@ -25,14 +26,15 @@ const PinCardContent = ({
   dueDate,
   assignedTo,
   progress = 0,
-  sourceInfo
+  sourceInfo,
+  image
 }: PinCardContentProps) => {
   return (
     <div className="flex-1 space-y-3">
-      {sourceInfo && (
+      {(image || sourceInfo) && (
         <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden">
           <img
-            src={sourceInfo}
+            src={image || sourceInfo}
             alt="Attachment preview"
             className="w-full h-full object-cover"
           />

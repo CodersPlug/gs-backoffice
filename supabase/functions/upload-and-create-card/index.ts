@@ -43,7 +43,7 @@ serve(async (req) => {
       .from('uploads')
       .getPublicUrl(filePath)
 
-    let thumbnailUrl = null
+    let imageUrl = null
 
     // If the file is a PDF, generate a snapshot
     if (fileExt.toLowerCase() === 'pdf') {
@@ -60,7 +60,7 @@ serve(async (req) => {
         if (!response.ok) throw new Error('Failed to process PDF')
         
         const { snapshotUrl } = await response.json()
-        thumbnailUrl = snapshotUrl
+        imageUrl = snapshotUrl
       } catch (error) {
         console.error('Error processing PDF:', error)
         // Continue without thumbnail if PDF processing fails
@@ -98,7 +98,8 @@ serve(async (req) => {
         description: `Archivo subido a través del Asistente AI`,
         content: `[Ver archivo](${publicUrl})`,
         order_index: newOrderIndex,
-        source_info: thumbnailUrl || publicUrl
+        source_info: publicUrl,
+        image: imageUrl // Store the snapshot URL in the image field
       })
       .select()
       .single()

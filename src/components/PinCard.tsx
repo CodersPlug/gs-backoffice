@@ -58,6 +58,7 @@ const PinCard = ({
             assignedTo={assignedTo}
             progress={progress}
             sourceInfo={sourceInfo}
+            image={image}
           />
           <PinCardFooter 
             onMaximize={() => setIsOpen(true)} 
