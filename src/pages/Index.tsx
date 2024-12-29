@@ -43,7 +43,7 @@ const pins = [
 
 const Index = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-dark-background">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-y-auto">

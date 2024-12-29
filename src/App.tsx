@@ -10,20 +10,22 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Enable dark mode by default
+    // Enable dark mode by default and ensure it's applied to html element
     document.documentElement.classList.add('dark');
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-          </Routes>
-        </BrowserRouter>
+        <div className="min-h-screen bg-dark-background">
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
