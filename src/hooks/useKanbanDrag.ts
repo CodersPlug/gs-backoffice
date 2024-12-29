@@ -22,7 +22,8 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeColumnId = String(active.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     const activeColumn = columns.find(col => col.id === activeColumnId);
-    if (activeColumn) {
+    
+    if (activeColumn && activeColumn.items[activeItemIndex]) {
       setActivePinData(activeColumn.items[activeItemIndex]);
     }
   };
@@ -49,7 +50,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) {
+    if (!over || !active) {
       setActiveId(null);
       setActivePinData(null);
       return;
@@ -58,10 +59,16 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeColumnId = String(active.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     
+    const sourceColumn = columns.find(col => col.id === activeColumnId);
+    if (!sourceColumn || !sourceColumn.items[activeItemIndex]) {
+      setActiveId(null);
+      setActivePinData(null);
+      return;
+    }
+
     // Handle dropping on a column (empty column case)
     if (!String(over.id).includes('-')) {
       const destinationColumnId = String(over.id);
-      const sourceColumn = columns.find(col => col.id === activeColumnId);
       const destinationColumn = columns.find(col => col.id === destinationColumnId);
       
       if (sourceColumn && destinationColumn) {
@@ -76,30 +83,46 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
             const sourceColumnIndex = newColumns.findIndex(col => col.id === activeColumnId);
             const destinationColumnIndex = newColumns.findIndex(col => col.id === destinationColumnId);
             
-            newColumns[sourceColumnIndex] = {
-              ...sourceColumn,
-              items: sourceColumn.items
-            };
-            
-            newColumns[destinationColumnIndex] = {
-              ...destinationColumn,
-              items: [...destinationColumn.items, movedItem]
-            };
+            if (sourceColumnIndex !== -1 && destinationColumnIndex !== -1) {
+              newColumns[sourceColumnIndex] = {
+                ...sourceColumn,
+                items: sourceColumn.items
+              };
+              
+              newColumns[destinationColumnIndex] = {
+                ...destinationColumn,
+                items: [...destinationColumn.items, movedItem]
+              };
+            }
             
             return newColumns;
           });
         } catch (error) {
           console.error('Failed to update item:', error);
+          toast({
+            title: "Error",
+            description: "Failed to update item position",
+            variant: "destructive",
+          });
         }
       }
     } else {
       const overColumnId = String(over.id).split('-')[0];
       const overItemIndex = parseInt(String(over.id).split('-')[1]);
       
+      const destinationColumn = columns.find(col => col.id === overColumnId);
+      if (!destinationColumn) {
+        setActiveId(null);
+        setActivePinData(null);
+        return;
+      }
+
       try {
         if (activeColumnId === overColumnId) {
           // Same column drag
           const columnIndex = columns.findIndex(col => col.id === activeColumnId);
+          if (columnIndex === -1) return;
+
           const column = columns[columnIndex];
           const items = arrayMove(column.items, activeItemIndex, overItemIndex);
           
@@ -118,6 +141,8 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
           const sourceColumnIndex = columns.findIndex(col => col.id === activeColumnId);
           const destinationColumnIndex = columns.findIndex(col => col.id === overColumnId);
           
+          if (sourceColumnIndex === -1 || destinationColumnIndex === -1) return;
+
           const newColumns = [...columns];
           const sourceItems = [...newColumns[sourceColumnIndex].items];
           const [movedItem] = sourceItems.splice(activeItemIndex, 1);
@@ -148,6 +173,11 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         }
       } catch (error) {
         console.error('Failed to update items:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update items positions",
+          variant: "destructive",
+        });
       }
     }
 
