@@ -52,17 +52,18 @@ serve(async (req) => {
 
     if (columnsError) throw columnsError
 
-    // Get the highest order_index in the column
+    // Get the lowest order_index in the column
     const { data: items, error: itemsError } = await supabase
       .from('kanban_items')
       .select('order_index')
       .eq('column_id', columns.id)
-      .order('order_index', { ascending: false })
+      .order('order_index', { ascending: true })
       .limit(1)
 
     if (itemsError) throw itemsError
 
-    const newOrderIndex = items.length > 0 ? items[0].order_index + 1 : 0
+    // Set new order_index to be less than the current minimum
+    const newOrderIndex = items.length > 0 ? items[0].order_index - 1 : 0
 
     // Create a new kanban card
     const { data: cardData, error: cardError } = await supabase
