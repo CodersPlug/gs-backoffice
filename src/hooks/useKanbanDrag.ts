@@ -1,12 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DragStartEvent, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Column, Pin } from "@/types/kanban";
 
+const STORAGE_KEY = 'kanban-board-state';
+
 export const useKanbanDrag = (initialColumns: Column[]) => {
-  const [columns, setColumns] = useState(initialColumns);
+  // Load initial state from localStorage or use provided initialColumns
+  const [columns, setColumns] = useState<Column[]>(() => {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    return savedState ? JSON.parse(savedState) : initialColumns;
+  });
+  
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activePinData, setActivePinData] = useState<Pin | null>(null);
+
+  // Save to localStorage whenever columns change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(columns));
+  }, [columns]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
