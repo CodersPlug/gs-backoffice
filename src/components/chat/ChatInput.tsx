@@ -12,11 +12,18 @@ interface ChatInputProps {
 
 const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
   ({ message, isLoading, onChange, onSend, onFileClick }, ref) => {
+    // Move useEffect hook to the top level
     useEffect(() => {
-      if (ref && typeof ref !== 'function') {
-        ref.current?.focus();
+      if (ref && 'current' in ref && ref.current) {
+        ref.current.focus();
       }
     }, [ref]);
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !isLoading && message.trim()) {
+        onSend();
+      }
+    };
 
     return (
       <div className="border-t p-4 bg-[#343541]">
@@ -37,7 +44,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
               type="text"
               value={message}
               onChange={(e) => onChange(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !isLoading && message.trim() && onSend()}
+              onKeyPress={handleKeyPress}
               placeholder="Envía un mensaje a ChatGPT..."
               className="w-full rounded-xl border border-gray-600/50 bg-[#40414F] py-3 pl-14 pr-14 text-white placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-0"
               disabled={isLoading}
