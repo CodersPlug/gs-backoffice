@@ -66,7 +66,15 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-dark-border">
             <div className="flex items-center justify-end">
-              <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+              <button 
+                className="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(true);
+                }}
+              >
+                <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+              </button>
             </div>
           </div>
         </div>
@@ -82,7 +90,7 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
               <p className="text-gray-600 dark:text-dark-foreground/80">{description}</p>
               <div className="flex justify-end">
                 <button 
-                  className="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors"
+                  className="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsOpen(false);
