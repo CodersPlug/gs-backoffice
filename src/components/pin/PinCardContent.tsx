@@ -28,14 +28,6 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
-  // Skip rendering content if it's a markdown link, URL, file link, or empty
-  const shouldShowContent = content && 
-    !content.includes('[Ver archivo]') && 
-    !content.startsWith('https://') &&
-    !content.startsWith('http://') &&
-    !content.match(/\[.*\]\(.*\)/) && // This catches markdown links
-    (!sourceInfo || !content.includes(sourceInfo));
-
   return (
     <div className="flex-1 space-y-3">
       <TitleSection icon={icon} title={title} />
@@ -44,7 +36,7 @@ const PinCardContent = ({
         {description}
       </p>
 
-      {shouldShowContent && (
+      {content && (
         <div className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-3">
           {content}
         </div>

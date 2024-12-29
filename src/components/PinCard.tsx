@@ -12,6 +12,11 @@ interface Comment {
   createdAt: string;
 }
 
+interface Attachment {
+  url: string;
+  name: string;
+}
+
 interface PinCardProps {
   id: UniqueIdentifier;
   image: string;
@@ -26,6 +31,7 @@ interface PinCardProps {
   progress?: number;
   sourceInfo?: string;
   comments?: Comment[];
+  attachments?: Attachment[];
 }
 
 const PinCard = ({ 
@@ -40,7 +46,8 @@ const PinCard = ({
   assignedTo,
   progress,
   sourceInfo,
-  comments
+  comments,
+  attachments
 }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -64,6 +71,7 @@ const PinCard = ({
             onMaximize={() => setIsOpen(true)} 
             id={id.toString()}
             sourceInfo={sourceInfo}
+            attachments={attachments}
           />
         </div>
       </PinCardDragWrapper>
@@ -81,6 +89,7 @@ const PinCard = ({
         progress={progress}
         sourceInfo={sourceInfo}
         comments={comments}
+        attachments={attachments}
       />
     </>
   );

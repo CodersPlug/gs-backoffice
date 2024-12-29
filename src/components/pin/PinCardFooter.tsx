@@ -1,16 +1,22 @@
-import { Eye, Loader2, Maximize2, Trash2 } from "lucide-react"
+import { Eye, Loader2, Maximize2, Trash2, Paperclip } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "@/hooks/use-toast"
 import { useState } from "react"
 
+interface Attachment {
+  url: string;
+  name: string;
+}
+
 interface PinCardFooterProps {
   id: string
   onMaximize?: () => void
   sourceInfo?: string
+  attachments?: Attachment[]
 }
 
-export function PinCardFooter({ id, onMaximize, sourceInfo }: PinCardFooterProps) {
+export function PinCardFooter({ id, onMaximize, sourceInfo, attachments = [] }: PinCardFooterProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -49,6 +55,12 @@ export function PinCardFooter({ id, onMaximize, sourceInfo }: PinCardFooterProps
     }
   }
 
+  const handleViewFirstAttachment = () => {
+    if (attachments && attachments.length > 0) {
+      window.open(attachments[0].url, '_blank')
+    }
+  }
+
   return (
     <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
       <div className="flex items-center justify-between">
@@ -64,6 +76,14 @@ export function PinCardFooter({ id, onMaximize, sourceInfo }: PinCardFooterProps
           )}
         </button>
         <div className="flex items-center gap-2">
+          {attachments && attachments.length > 0 && (
+            <button 
+              className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
+              onClick={handleViewFirstAttachment}
+            >
+              <Paperclip className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+            </button>
+          )}
           {sourceInfo && (
             <button 
               className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"

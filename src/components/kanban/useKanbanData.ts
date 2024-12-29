@@ -44,7 +44,7 @@ export const useKanbanData = () => {
       const { data: items, error: itemsError } = await supabase
         .from('kanban_items')
         .select('*')
-        .eq('deleted', false)  // Only fetch non-deleted items
+        .eq('deleted', false)
         .order('order_index');
 
       if (itemsError) {
@@ -62,8 +62,7 @@ export const useKanbanData = () => {
           .filter(item => item.column_id === column.id)
           .map(item => ({
             id: item.id,
-            // Use the image field if available, otherwise use source_info
-            image: item.image || item.source_info || '',
+            image: item.image || '',
             title: item.title,
             description: item.description || '',
             author: item.author || '',
@@ -74,7 +73,8 @@ export const useKanbanData = () => {
             assignedTo: item.assigned_to,
             progress: item.progress,
             sourceInfo: item.source_info,
-            comments: item.comments || []
+            comments: item.comments || [],
+            attachments: item.attachments || []
           }))
       }));
 

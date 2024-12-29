@@ -33,6 +33,7 @@ export type Database = {
       kanban_items: {
         Row: {
           assigned_to: string | null
+          attachments: Json | null
           author: string | null
           column_id: string | null
           comments: Json | null
@@ -56,6 +57,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          attachments?: Json | null
           author?: string | null
           column_id?: string | null
           comments?: Json | null
@@ -79,6 +81,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          attachments?: Json | null
           author?: string | null
           column_id?: string | null
           comments?: Json | null

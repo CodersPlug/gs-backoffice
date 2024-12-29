@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, Calendar, User, Tag, Link2 } from 'lucide-react';
+import { MessageCircle, Calendar, User, Tag, Link2, Paperclip } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,11 @@ interface Comment {
   createdAt: string;
 }
 
+interface Attachment {
+  url: string;
+  name: string;
+}
+
 interface PinCardDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,6 +33,7 @@ interface PinCardDialogProps {
   progress?: number;
   sourceInfo?: string;
   comments?: Comment[];
+  attachments?: Attachment[];
 }
 
 const PinCardDialog = ({ 
@@ -42,7 +48,8 @@ const PinCardDialog = ({
   assignedTo,
   progress = 0,
   sourceInfo,
-  comments = []
+  comments = [],
+  attachments = []
 }: PinCardDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -63,6 +70,33 @@ const PinCardDialog = ({
             {content && (
               <div className="text-gray-600 dark:text-dark-foreground/80 prose dark:prose-invert">
                 {content}
+              </div>
+            )}
+
+            {attachments.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-900 dark:text-dark-foreground flex items-center gap-2">
+                  <Paperclip className="w-4 h-4" />
+                  Attachments
+                </h4>
+                <div className="space-y-2">
+                  {attachments.map((attachment, index) => (
+                    <a
+                      key={index}
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-2 rounded-lg bg-gray-50 dark:bg-dark-muted/50 hover:bg-gray-100 dark:hover:bg-dark-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-600 dark:text-dark-foreground/80">
+                          {attachment.name}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
 
