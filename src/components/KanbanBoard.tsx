@@ -74,7 +74,15 @@ const KanbanBoard = () => {
           image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
           title: item.title,
           description: item.description || '',
-          author: item.author || ''
+          author: item.author || '',
+          icon: item.icon,
+          content: item.content,
+          tags: item.tags,
+          dueDate: item.due_date,
+          assignedTo: item.assigned_to,
+          progress: item.progress,
+          sourceInfo: item.source_info,
+          comments: item.comments || []
         }))
     }));
 

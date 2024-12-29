@@ -6,15 +6,43 @@ import PinCardContent from "./pin/PinCardContent";
 import PinCardFooter from "./pin/PinCardFooter";
 import PinCardDialog from "./pin/PinCardDialog";
 
+interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: string;
+}
+
 interface PinCardProps {
+  id: UniqueIdentifier;
   image: string;
   title: string;
   description: string;
   author: string;
-  id: UniqueIdentifier;
+  icon?: string;
+  content?: string;
+  tags?: string[];
+  dueDate?: string;
+  assignedTo?: string;
+  progress?: number;
+  sourceInfo?: string;
+  comments?: Comment[];
 }
 
-const PinCard = ({ image, title, description, id }: PinCardProps) => {
+const PinCard = ({ 
+  id,
+  image,
+  title, 
+  description,
+  icon,
+  content,
+  tags,
+  dueDate,
+  assignedTo,
+  progress,
+  sourceInfo,
+  comments
+}: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const {
@@ -56,7 +84,17 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
         }}
       >
         <div className="relative p-4 pb-2">
-          <PinCardContent title={title} description={description} />
+          <PinCardContent 
+            title={title}
+            description={description}
+            icon={icon}
+            content={content}
+            tags={tags}
+            dueDate={dueDate}
+            assignedTo={assignedTo}
+            progress={progress}
+            sourceInfo={sourceInfo}
+          />
           <PinCardFooter onOpenDialog={() => setIsOpen(true)} />
         </div>
       </div>
@@ -66,6 +104,14 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
         onOpenChange={setIsOpen}
         title={title}
         description={description}
+        icon={icon}
+        content={content}
+        tags={tags}
+        dueDate={dueDate}
+        assignedTo={assignedTo}
+        progress={progress}
+        sourceInfo={sourceInfo}
+        comments={comments}
       />
     </>
   );

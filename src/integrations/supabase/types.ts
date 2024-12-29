@@ -32,30 +32,66 @@ export type Database = {
       }
       kanban_items: {
         Row: {
+          assigned_to: string | null
           author: string | null
           column_id: string | null
+          comments: Json | null
+          content: string | null
           created_at: string
           description: string | null
+          due_date: string | null
+          icon: string | null
           id: string
+          media: Json | null
           order_index: number
+          priority: string | null
+          progress: number | null
+          related_items: string[] | null
+          source_info: string | null
+          status: string | null
+          tags: string[] | null
           title: string
         }
         Insert: {
+          assigned_to?: string | null
           author?: string | null
           column_id?: string | null
+          comments?: Json | null
+          content?: string | null
           created_at?: string
           description?: string | null
+          due_date?: string | null
+          icon?: string | null
           id?: string
+          media?: Json | null
           order_index: number
+          priority?: string | null
+          progress?: number | null
+          related_items?: string[] | null
+          source_info?: string | null
+          status?: string | null
+          tags?: string[] | null
           title: string
         }
         Update: {
+          assigned_to?: string | null
           author?: string | null
           column_id?: string | null
+          comments?: Json | null
+          content?: string | null
           created_at?: string
           description?: string | null
+          due_date?: string | null
+          icon?: string | null
           id?: string
+          media?: Json | null
           order_index?: number
+          priority?: string | null
+          progress?: number | null
+          related_items?: string[] | null
+          source_info?: string | null
+          status?: string | null
+          tags?: string[] | null
           title?: string
         }
         Relationships: [
