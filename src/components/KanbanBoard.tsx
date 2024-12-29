@@ -63,8 +63,7 @@ const KanbanBoard = () => {
     activeId,
     activePinData,
     handleDragStart,
-    handleDragEnd,
-    isLoading
+    handleDragEnd
   } = useKanbanDrag(initialColumns);
 
   const sensors = useSensors(
@@ -77,14 +76,6 @@ const KanbanBoard = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-dark-foreground"></div>
-      </div>
-    );
-  }
 
   return (
     <DndContext
