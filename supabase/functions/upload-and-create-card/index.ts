@@ -65,14 +65,13 @@ serve(async (req) => {
     // Set new order_index to be less than the current minimum
     const newOrderIndex = items.length > 0 ? items[0].order_index - 1 : 0
 
-    // Create a new kanban card
+    // Create a new kanban card - now storing URL only in source_info
     const { data: cardData, error: cardError } = await supabase
       .from('kanban_items')
       .insert({
         column_id: columns.id,
         title: file.name,
         description: `Archivo subido a través del Asistente AI`,
-        content: `[Ver archivo](${publicUrl})`,
         order_index: newOrderIndex,
         source_info: publicUrl
       })
