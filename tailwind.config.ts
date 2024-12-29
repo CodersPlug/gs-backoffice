@@ -33,14 +33,16 @@ export default {
           foreground: "#18181b",
         },
         card: {
-          DEFAULT: "#ffffff",
-          foreground: "#18181b",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        dark: {
+          background: "#1A1F2C",
+          foreground: "#FFFFFF",
+          muted: "#403E43",
+          accent: "#D6BCFA",
+          border: "#9F9EA1",
+        },
       },
       keyframes: {
         "accordion-down": {
