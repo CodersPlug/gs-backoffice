@@ -63,6 +63,7 @@ const PinCard = ({
           <PinCardFooter 
             onMaximize={() => setIsOpen(true)} 
             id={id.toString()}
+            sourceInfo={sourceInfo}
           />
         </div>
       </PinCardDragWrapper>
