@@ -13,7 +13,7 @@ const DragOverlayWrapper = ({ activeId, activePinData }: DragOverlayWrapperProps
 
   return (
     <DragOverlay>
-      <div className="rotate-3">
+      <div className="opacity-80 rotate-3 scale-105 transition-transform">
         <PinCard {...activePinData} id={activeId} />
       </div>
     </DragOverlay>
