@@ -25,8 +25,24 @@ const PinCardContent = ({
   progress = 0,
   sourceInfo
 }: PinCardContentProps) => {
+  // Function to check if the sourceInfo is an image URL
+  const isImageUrl = (url?: string) => {
+    if (!url) return false;
+    return url.match(/\.(jpeg|jpg|gif|png)$/) !== null;
+  };
+
   return (
     <div className="flex-1 space-y-3">
+      {sourceInfo && isImageUrl(sourceInfo) && (
+        <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden">
+          <img
+            src={sourceInfo}
+            alt="Attachment preview"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         {icon && <span className="text-gray-500">{icon}</span>}
         <h3 className="font-medium text-gray-900 dark:text-dark-foreground line-clamp-1">
@@ -73,7 +89,7 @@ const PinCardContent = ({
           </div>
         )}
 
-        {sourceInfo && (
+        {sourceInfo && !isImageUrl(sourceInfo) && (
           <div className="flex items-center gap-1">
             <Link2 className="w-3 h-3" />
             <span className="line-clamp-1">{sourceInfo}</span>
