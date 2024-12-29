@@ -36,9 +36,11 @@ serve(async (req) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
-        // Ensure we're only sending the base64 data without the data URL prefix
-        const base64Data = base64String.split(',')[1] || base64String;
-        resolve(`data:${pdfBlob.type};base64,${base64Data}`);
+        // Remove the data URL prefix if it exists
+        const base64Data = base64String.includes('base64,') 
+          ? base64String.split('base64,')[1] 
+          : base64String;
+        resolve(base64Data);
       };
       reader.readAsDataURL(pdfBlob);
     });
@@ -75,7 +77,7 @@ serve(async (req) => {
               {
                 type: "image_url",
                 image_url: {
-                  url: base64Pdf
+                  url: `data:application/pdf;base64,${base64Pdf}`
                 }
               }
             ]
