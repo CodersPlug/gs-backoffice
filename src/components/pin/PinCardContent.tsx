@@ -28,8 +28,8 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
-  // Skip rendering content if it's a file link or empty
-  const shouldShowContent = content && !content.includes('[Ver archivo]');
+  // Skip rendering content if it's a file link, empty, or matches sourceInfo URL
+  const shouldShowContent = content && !content.includes('[Ver archivo]') && (!sourceInfo || !content.includes(sourceInfo));
 
   return (
     <div className="flex-1 space-y-3">
