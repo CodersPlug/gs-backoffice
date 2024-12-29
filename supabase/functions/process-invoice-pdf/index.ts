@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { Document } from "https://deno.land/x/pdf@v0.1.1/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,7 +28,29 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Call OpenAI API directly with the PDF URL
+    // Fetch the PDF content
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+    }
+
+    const pdfArrayBuffer = await pdfResponse.arrayBuffer();
+    
+    // Load the PDF document using the Deno PDF library
+    const document = new Document(pdfArrayBuffer);
+    const pages = document.getPages();
+    
+    // Convert first page to PNG
+    const firstPage = pages[0];
+    const pngData = await firstPage.render({
+      format: "png",
+      scale: 2.0, // Higher scale for better quality
+    });
+
+    // Convert PNG data to base64
+    const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(pngData)))}`;
+
+    // Call OpenAI API with the converted image
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -46,7 +69,13 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items. The PDF is available at: " + pdfUrl
+                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: base64Image
+                }
               }
             ]
           }
