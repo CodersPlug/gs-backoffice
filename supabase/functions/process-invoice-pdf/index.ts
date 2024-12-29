@@ -29,23 +29,6 @@ serve(async (req) => {
     if (!response.ok) {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
-    
-    // Get the PDF as an ArrayBuffer
-    const pdfBuffer = await response.arrayBuffer();
-    
-    // Convert to base64
-    const base64Pdf = btoa(
-      new Uint8Array(pdfBuffer)
-        .reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
-
-    console.log('PDF converted to base64');
-
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -63,18 +46,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:application/pdf;base64,${base64Pdf}`
-                }
-              }
-            ]
+            content: `Please analyze this invoice URL: ${pdfUrl} and extract the following information: date, invoice number, total amount, supplier details, and line items.`
           }
         ],
         max_tokens: 500,
@@ -84,7 +56,7 @@ serve(async (req) => {
     if (!openAIResponse.ok) {
       const errorData = await openAIResponse.text();
       console.error('OpenAI API error response:', errorData);
-      throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
+      throw new Error(`OpenAI API error: ${openAIResponse.statusText} - ${errorData}`);
     }
 
     const data = await openAIResponse.json();
@@ -96,6 +68,12 @@ serve(async (req) => {
 
     const extractedInfo = data.choices[0].message.content;
     console.log('Extracted information:', extractedInfo);
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Update the kanban item with the extracted information
     const { error: updateError } = await supabase
