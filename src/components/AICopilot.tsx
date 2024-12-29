@@ -4,6 +4,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ChatMessageList from "./chat/ChatMessageList";
 import ChatInput from "./chat/ChatInput";
+import { Button } from "./ui/button";
+import { Upload } from "lucide-react";
 
 interface AICopilotProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
   const [conversation, setConversation] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +49,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "No se pudo obtener la respuesta del AI. Por favor, intenta de nuevo.",
+        description: "No se pudo obtener la respuesta del AI. Por favor, intentá de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -54,11 +57,61 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('upload-and-create-card', {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      setConversation(prev => [
+        ...prev,
+        { role: 'user', content: `Subí el archivo: ${file.name}` },
+        { role: 'assistant', content: 'Archivo subido exitosamente. Se creó una nueva tarjeta en la columna "Para Hacer".' }
+      ]);
+
+      toast({
+        title: "Éxito",
+        description: "Archivo subido y tarjeta creada exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el archivo. Por favor, intentá de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:w-[400px] p-0">
         <SheetHeader className="relative p-4 border-b">
-          <SheetTitle>Asistente AI</SheetTitle>
+          <SheetTitle className="flex items-center justify-between">
+            <span>Asistente AI</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <Upload className="h-4 w-4" />
+            </Button>
+          </SheetTitle>
         </SheetHeader>
         <div className="flex flex-col h-[calc(100vh-4rem)]">
           <ChatMessageList messages={conversation} />
@@ -68,6 +121,13 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
             isLoading={isLoading}
             onChange={setMessage}
             onSend={handleSendMessage}
+          />
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileUpload}
+            accept="*/*"
           />
         </div>
       </SheetContent>
