@@ -28,11 +28,14 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
+  // Don't show content if it's empty, contains URLs, or is just whitespace
   const shouldShowContent = content && 
+    content.trim() !== '' &&
     !content.includes('[Ver archivo]') && 
     !content.includes('bamdlnybhcqkiihpwdlz.supabase.co') &&
     !content.includes('https://') &&
-    !content.includes('http://');
+    !content.includes('http://') &&
+    !content.includes(sourceInfo || '');
 
   return (
     <div className="flex-1 space-y-3">
