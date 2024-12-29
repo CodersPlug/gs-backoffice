@@ -2,21 +2,16 @@ import { useState, useEffect } from "react";
 import { DragStartEvent, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Column, Pin } from "@/types/kanban";
-
-const STORAGE_KEY = 'kanban-board-state';
+import { supabase } from "@/integrations/supabase/client";
 
 export const useKanbanDrag = (initialColumns: Column[]) => {
-  const [columns, setColumns] = useState<Column[]>(() => {
-    const savedState = localStorage.getItem(STORAGE_KEY);
-    return savedState ? JSON.parse(savedState) : initialColumns;
-  });
-  
+  const [columns, setColumns] = useState<Column[]>(initialColumns);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activePinData, setActivePinData] = useState<Pin | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(columns));
-  }, [columns]);
+    setColumns(initialColumns);
+  }, [initialColumns]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -31,35 +26,48 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || !active) {
+    if (!over) {
       setActiveId(null);
       setActivePinData(null);
       return;
     }
 
     const activeColumnId = String(active.id).split('-')[0];
-    const overColumnId = String(over.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     
-    // Handle dropping on a column (empty column case)
-    if (!String(over.id).includes('-')) {
+    // Handle dropping on a column or item
+    const overColumnId = String(over.id).includes('-') 
+      ? String(over.id).split('-')[0]
+      : String(over.id);
+    
+    const overItemIndex = String(over.id).includes('-')
+      ? parseInt(String(over.id).split('-')[1])
+      : -1;
+
+    if (activeColumnId !== overColumnId || activeItemIndex !== overItemIndex) {
       setColumns(prevColumns => {
         const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
-        const destinationColumnIndex = prevColumns.findIndex(col => col.id === over.id);
+        const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
         
-        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) {
-          return prevColumns;
-        }
+        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) return prevColumns;
 
         const newColumns = [...prevColumns];
         const sourceItems = [...newColumns[sourceColumnIndex].items];
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
         
-        if (!movedItem) {
-          return prevColumns;
+        if (!movedItem) return prevColumns;
+
+        const destinationItems = [...newColumns[destinationColumnIndex].items];
+        
+        if (overItemIndex === -1) {
+          // Dropped directly on a column
+          destinationItems.push(movedItem);
+        } else {
+          // Dropped on an item
+          destinationItems.splice(overItemIndex, 0, movedItem);
         }
 
         newColumns[sourceColumnIndex] = {
@@ -69,58 +77,27 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         
         newColumns[destinationColumnIndex] = {
           ...newColumns[destinationColumnIndex],
-          items: [...newColumns[destinationColumnIndex].items, movedItem]
+          items: destinationItems
         };
 
+        // Update the database
+        const itemId = active.id.toString().split('-')[2];
+        if (itemId) {
+          supabase
+            .from('kanban_items')
+            .update({
+              column_id: overColumnId,
+              order_index: overItemIndex === -1 ? destinationItems.length - 1 : overItemIndex
+            })
+            .eq('id', itemId)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error updating item:', error);
+              }
+            });
+        }
+
         return newColumns;
-      });
-    } else {
-      // Handle dropping on an item
-      const overItemIndex = parseInt(String(over.id).split('-')[1]);
-      
-      setColumns(prevColumns => {
-        const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
-        const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
-        
-        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) {
-          return prevColumns;
-        }
-
-        if (activeColumnId === overColumnId) {
-          // Same column drag
-          const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
-          const column = prevColumns[columnIndex];
-          if (!column) return prevColumns;
-          
-          const items = arrayMove(column.items, activeItemIndex, overItemIndex);
-
-          return prevColumns.map((col, index) =>
-            index === columnIndex ? { ...col, items } : col
-          );
-        } else {
-          // Different column drag
-          const newColumns = [...prevColumns];
-          const sourceItems = [...newColumns[sourceColumnIndex].items];
-          const [movedItem] = sourceItems.splice(activeItemIndex, 1);
-          
-          if (!movedItem) {
-            return prevColumns;
-          }
-
-          const destinationItems = [...newColumns[destinationColumnIndex].items];
-          destinationItems.splice(overItemIndex, 0, movedItem);
-
-          newColumns[sourceColumnIndex] = {
-            ...newColumns[sourceColumnIndex],
-            items: sourceItems
-          };
-          newColumns[destinationColumnIndex] = {
-            ...newColumns[destinationColumnIndex],
-            items: destinationItems
-          };
-
-          return newColumns;
-        }
       });
     }
 
