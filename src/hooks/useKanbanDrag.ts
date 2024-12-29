@@ -34,7 +34,6 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     const overItemIndex = parseInt(String(over.id).split('-')[1]);
 
-    // If dropping in the same column
     if (activeColumnId === overColumnId) {
       setColumns(prevColumns => {
         const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
@@ -45,9 +44,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
           index === columnIndex ? { ...col, items } : col
         );
       });
-    } 
-    // If dropping in a different column
-    else {
+    } else {
       setColumns(prevColumns => {
         const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
@@ -58,21 +55,21 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         const sourceItems = [...newColumns[sourceColumnIndex].items];
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
         const destinationItems = [...newColumns[destinationColumnIndex].items];
+        
+        destinationItems.splice(
+          overItemIndex >= 0 ? overItemIndex : destinationItems.length,
+          0,
+          movedItem
+        );
 
-        // Calculate the correct insertion index
-        let insertIndex = overItemIndex;
-        if (destinationColumnIndex < sourceColumnIndex) {
-          // When moving left, insert after the target item
-          insertIndex = (insertIndex === undefined || insertIndex < 0) ? destinationItems.length : insertIndex + 1;
-        } else {
-          // When moving right, insert before the target item
-          insertIndex = (insertIndex === undefined || insertIndex < 0) ? destinationItems.length : insertIndex;
-        }
-
-        destinationItems.splice(insertIndex, 0, movedItem);
-
-        newColumns[sourceColumnIndex] = { ...newColumns[sourceColumnIndex], items: sourceItems };
-        newColumns[destinationColumnIndex] = { ...newColumns[destinationColumnIndex], items: destinationItems };
+        newColumns[sourceColumnIndex] = {
+          ...newColumns[sourceColumnIndex],
+          items: sourceItems
+        };
+        newColumns[destinationColumnIndex] = {
+          ...newColumns[destinationColumnIndex],
+          items: destinationItems
+        };
 
         return newColumns;
       });
