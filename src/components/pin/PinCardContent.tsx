@@ -28,6 +28,9 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
+  // Skip rendering content if it's a file link
+  const shouldShowContent = content && !content.startsWith('[Ver archivo]');
+
   return (
     <div className="flex-1 space-y-3">
       <TitleSection icon={icon} title={title} />
@@ -36,7 +39,7 @@ const PinCardContent = ({
         {description}
       </p>
 
-      {content && (
+      {shouldShowContent && (
         <div className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-3">
           {content}
         </div>
