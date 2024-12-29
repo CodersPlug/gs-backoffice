@@ -30,22 +30,16 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
     
-    // Convert PDF to base64
-    const pdfBlob = await response.blob();
-    const base64Pdf = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        // Remove the data URL prefix if it exists
-        const base64Data = base64String.includes('base64,') 
-          ? base64String.split('base64,')[1] 
-          : base64String;
-        resolve(base64Data);
-      };
-      reader.readAsDataURL(pdfBlob);
-    });
+    // Get the PDF as an ArrayBuffer
+    const pdfBuffer = await response.arrayBuffer();
+    
+    // Convert to base64
+    const base64Pdf = btoa(
+      new Uint8Array(pdfBuffer)
+        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
 
-    console.log('PDF downloaded and converted to base64');
+    console.log('PDF converted to base64');
 
     // Initialize Supabase client
     const supabase = createClient(
