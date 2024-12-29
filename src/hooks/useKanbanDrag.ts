@@ -6,7 +6,6 @@ import { Column, Pin } from "@/types/kanban";
 const STORAGE_KEY = 'kanban-board-state';
 
 export const useKanbanDrag = (initialColumns: Column[]) => {
-  // Load initial state from localStorage or use provided initialColumns
   const [columns, setColumns] = useState<Column[]>(() => {
     const savedState = localStorage.getItem(STORAGE_KEY);
     return savedState ? JSON.parse(savedState) : initialColumns;
@@ -15,7 +14,6 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activePinData, setActivePinData] = useState<Pin | null>(null);
 
-  // Save to localStorage whenever columns change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(columns));
   }, [columns]);
@@ -27,7 +25,8 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeColumnId = String(active.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     const activeColumn = columns.find(col => col.id === activeColumnId);
-    if (activeColumn) {
+    
+    if (activeColumn && activeColumn.items[activeItemIndex]) {
       setActivePinData(activeColumn.items[activeItemIndex]);
     }
   };
@@ -35,7 +34,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) {
+    if (!over || !active) {
       setActiveId(null);
       setActivePinData(null);
       return;
@@ -51,10 +50,18 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const destinationColumnIndex = prevColumns.findIndex(col => col.id === over.id);
         
+        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) {
+          return prevColumns;
+        }
+
         const newColumns = [...prevColumns];
         const sourceItems = [...newColumns[sourceColumnIndex].items];
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
         
+        if (!movedItem) {
+          return prevColumns;
+        }
+
         newColumns[sourceColumnIndex] = {
           ...newColumns[sourceColumnIndex],
           items: sourceItems
@@ -72,10 +79,19 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
       const overItemIndex = parseInt(String(over.id).split('-')[1]);
       
       setColumns(prevColumns => {
+        const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
+        const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
+        
+        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) {
+          return prevColumns;
+        }
+
         if (activeColumnId === overColumnId) {
           // Same column drag
           const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
           const column = prevColumns[columnIndex];
+          if (!column) return prevColumns;
+          
           const items = arrayMove(column.items, activeItemIndex, overItemIndex);
 
           return prevColumns.map((col, index) =>
@@ -83,14 +99,15 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
           );
         } else {
           // Different column drag
-          const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
-          const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
-          
           const newColumns = [...prevColumns];
           const sourceItems = [...newColumns[sourceColumnIndex].items];
           const [movedItem] = sourceItems.splice(activeItemIndex, 1);
-          const destinationItems = [...newColumns[destinationColumnIndex].items];
           
+          if (!movedItem) {
+            return prevColumns;
+          }
+
+          const destinationItems = [...newColumns[destinationColumnIndex].items];
           destinationItems.splice(overItemIndex, 0, movedItem);
 
           newColumns[sourceColumnIndex] = {
