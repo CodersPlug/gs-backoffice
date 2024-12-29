@@ -65,7 +65,7 @@ serve(async (req) => {
     // Set new order_index to be less than the current minimum
     const newOrderIndex = items.length > 0 ? items[0].order_index - 1 : 0
 
-    // Create a new kanban card - now storing URL only in source_info
+    // Create a new kanban card
     const { data: cardData, error: cardError } = await supabase
       .from('kanban_items')
       .insert({
@@ -79,6 +79,26 @@ serve(async (req) => {
       .single()
 
     if (cardError) throw cardError
+
+    // If it's a PDF, process it to extract invoice information
+    if (fileExt.toLowerCase() === 'pdf') {
+      try {
+        const processingResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-invoice-pdf`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ pdfUrl: publicUrl })
+        })
+
+        if (!processingResponse.ok) {
+          console.error('Error processing PDF:', await processingResponse.text())
+        }
+      } catch (processError) {
+        console.error('Error calling PDF processor:', processError)
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
