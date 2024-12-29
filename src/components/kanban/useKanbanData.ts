@@ -62,8 +62,8 @@ export const useKanbanData = () => {
           .filter(item => item.column_id === column.id)
           .map(item => ({
             id: item.id,
-            // Use source_info directly since it contains the snapshot URL
-            image: item.source_info || '',
+            // Use the image field if available, otherwise use source_info
+            image: item.image || item.source_info || '',
             title: item.title,
             description: item.description || '',
             author: item.author || '',
