@@ -20,7 +20,7 @@ const ChatInput = forwardRef<HTMLInputElement, ChatInputProps>(
           onChange={(e) => onChange(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && onSend()}
           placeholder="Escribe tu mensaje..."
-          className="flex-1 px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="flex-1 px-4 py-2 rounded-md border text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
         <Button onClick={onSend} disabled={isLoading || !message.trim()}>
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
