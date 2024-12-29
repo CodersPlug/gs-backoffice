@@ -6,22 +6,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface PinCardProps {
   image: string;
   title: string;
   description: string;
   author: string;
+  id: string;
 }
 
-const PinCard = ({ image, title, description }: PinCardProps) => {
+const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
     <>
       <div
-        className="group relative w-full rounded-lg overflow-hidden cursor-pointer transform transition-all duration-500 hover:-translate-y-1 bg-white dark:bg-dark-background border border-gray-100 dark:border-dark-border shadow-sm"
-        onClick={() => setIsOpen(true)}
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="group relative w-full rounded-lg overflow-hidden cursor-move transform transition-all duration-500 hover:-translate-y-1 bg-white dark:bg-dark-background border border-gray-100 dark:border-dark-border shadow-sm"
+        onClick={(e) => {
+          if (!isDragging) {
+            setIsOpen(true);
+          }
+        }}
       >
         <div className="relative p-4">
           <div className="flex items-start space-x-3 mb-3">

@@ -1,8 +1,24 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PinCard from "@/components/PinCard";
+import { useState } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
-const pins = [
+const initialPins = [
   {
     image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
     title: "Proceso de Onboarding",
@@ -41,38 +57,127 @@ const pins = [
   }
 ];
 
-const columns = [
-  { id: 'blocked', title: 'Bloqueado', items: pins.slice(0, 1) },
-  { id: 'todo', title: 'Para Hacer', items: pins.slice(1, 3) },
-  { id: 'doing', title: 'Haciendo', items: pins.slice(3, 4) },
-  { id: 'done', title: 'Hecho', items: pins.slice(4) }
+const initialColumns = [
+  { id: 'blocked', title: 'Bloqueado', items: initialPins.slice(0, 1) },
+  { id: 'todo', title: 'Para Hacer', items: initialPins.slice(1, 3) },
+  { id: 'doing', title: 'Haciendo', items: initialPins.slice(3, 4) },
+  { id: 'done', title: 'Hecho', items: initialPins.slice(4) }
 ];
 
 const Index = () => {
+  const [columns, setColumns] = useState(initialColumns);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = (event: { active: { id: string } }) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = (event: { active: { id: string }; over: { id: string } | null }) => {
+    const { active, over } = event;
+
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
+    const activeColumnId = active.id.split('-')[0];
+    const overColumnId = over.id.split('-')[0];
+
+    if (activeColumnId !== overColumnId) {
+      // Move between columns
+      setColumns(prevColumns => {
+        const activeColumn = prevColumns.find(col => col.id === activeColumnId);
+        const overColumn = prevColumns.find(col => col.id === overColumnId);
+
+        if (!activeColumn || !overColumn) return prevColumns;
+
+        const activeItemIndex = parseInt(active.id.split('-')[1]);
+        const item = activeColumn.items[activeItemIndex];
+
+        const updatedColumns = prevColumns.map(col => {
+          if (col.id === activeColumnId) {
+            return {
+              ...col,
+              items: col.items.filter((_, index) => index !== activeItemIndex)
+            };
+          }
+          if (col.id === overColumnId) {
+            return {
+              ...col,
+              items: [...col.items, item]
+            };
+          }
+          return col;
+        });
+
+        return updatedColumns;
+      });
+    } else {
+      // Reorder within column
+      const columnIndex = columns.findIndex(col => col.id === activeColumnId);
+      const itemIndex = parseInt(active.id.split('-')[1]);
+      const overItemIndex = parseInt(over.id.split('-')[1]);
+
+      setColumns(prevColumns => {
+        const column = prevColumns[columnIndex];
+        const items = arrayMove(column.items, itemIndex, overItemIndex);
+
+        return prevColumns.map((col, index) =>
+          index === columnIndex ? { ...col, items } : col
+        );
+      });
+    }
+
+    setActiveId(null);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-dark-background">
       <Header />
       
       <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-x-auto">
-        <div className="flex gap-6 min-h-[calc(100vh-10rem)]">
-          {columns.map((column) => (
-            <div
-              key={column.id}
-              className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4"
-            >
-              <h2 className="text-lg font-semibold mb-4 text-dark-foreground">
-                {column.title}
-              </h2>
-              <div className="space-y-4">
-                {column.items.map((pin, index) => (
-                  <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <PinCard {...pin} />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-6 min-h-[calc(100vh-10rem)]">
+            {columns.map((column) => (
+              <div
+                key={column.id}
+                className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4"
+              >
+                <h2 className="text-lg font-semibold mb-4 text-dark-foreground">
+                  {column.title}
+                </h2>
+                <SortableContext
+                  items={column.items.map((_, index) => `${column.id}-${index}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {column.items.map((pin, index) => (
+                      <div
+                        key={`${column.id}-${index}`}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <PinCard {...pin} id={`${column.id}-${index}`} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </DndContext>
       </main>
 
       <Footer />
