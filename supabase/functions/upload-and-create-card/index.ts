@@ -38,7 +38,10 @@ serve(async (req) => {
         upsert: false
       })
 
-    if (uploadError) throw uploadError
+    if (uploadError) {
+      console.error('Upload error:', uploadError)
+      throw uploadError
+    }
 
     // Get the public URL of the uploaded file
     const { data: { publicUrl } } = supabase.storage
@@ -52,7 +55,10 @@ serve(async (req) => {
       .eq('title', 'Para Hacer')
       .single()
 
-    if (columnsError) throw columnsError
+    if (columnsError) {
+      console.error('Columns error:', columnsError)
+      throw columnsError
+    }
 
     // Get the lowest order_index in the column
     const { data: items, error: itemsError } = await supabase
@@ -62,7 +68,10 @@ serve(async (req) => {
       .order('order_index', { ascending: true })
       .limit(1)
 
-    if (itemsError) throw itemsError
+    if (itemsError) {
+      console.error('Items error:', itemsError)
+      throw itemsError
+    }
 
     // Set new order_index to be less than the current minimum
     const newOrderIndex = items.length > 0 ? items[0].order_index - 1 : 0
@@ -80,7 +89,10 @@ serve(async (req) => {
       .select()
       .single()
 
-    if (cardError) throw cardError
+    if (cardError) {
+      console.error('Card creation error:', cardError)
+      throw cardError
+    }
 
     // If it's a PDF, process it to extract invoice information
     if (fileExt === 'pdf') {

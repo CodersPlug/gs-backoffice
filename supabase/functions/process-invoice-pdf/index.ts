@@ -30,12 +30,12 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
     
-    // Stream the PDF content instead of loading it all into memory
-    const pdfStream = await response.blob();
+    // Convert PDF to base64
+    const pdfBlob = await response.blob();
     const base64Pdf = await new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(',')[1]);
-      reader.readAsDataURL(pdfStream);
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(pdfBlob);
     });
 
     console.log('PDF downloaded and converted to base64');
@@ -46,7 +46,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Use OpenAI to extract information with a more focused prompt
     console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -71,7 +70,7 @@ serve(async (req) => {
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:application/pdf;base64,${base64Pdf}`
+                  url: base64Pdf
                 }
               }
             ]
