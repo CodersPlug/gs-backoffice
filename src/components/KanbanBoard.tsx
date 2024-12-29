@@ -12,7 +12,7 @@ import DragOverlayWrapper from "./DragOverlayWrapper";
 import { useKanbanDrag } from "@/hooks/useKanbanDrag";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Column, Pin } from "@/types/kanban";
+import { Column, Pin, DraggablePin } from "@/types/kanban";
 import { useToast } from "@/components/ui/use-toast";
 
 const KanbanBoard = () => {
@@ -83,6 +83,13 @@ const KanbanBoard = () => {
     );
   }
 
+  // Transform Pin to DraggablePin for the DragOverlayWrapper
+  const draggablePinData = activePinData ? {
+    ...activePinData,
+    originalId: activePinData.id,
+    id: activeId,
+  } as DraggablePin : null;
+
   return (
     <DndContext
       sensors={sensors}
@@ -95,7 +102,7 @@ const KanbanBoard = () => {
           <KanbanColumn key={column.id} column={column} />
         ))}
       </div>
-      <DragOverlayWrapper activeId={activeId} activePinData={activePinData} />
+      <DragOverlayWrapper activeId={activeId} activePinData={draggablePinData} />
     </DndContext>
   );
 };
