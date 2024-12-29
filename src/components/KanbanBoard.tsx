@@ -19,7 +19,7 @@ const KanbanBoard = () => {
     console.log("Fetching kanban data...");
     
     // Check if we have the required columns
-    const { data: columns, error: columnsError } = await supabase
+    let { data: columns, error: columnsError } = await supabase
       .from('kanban_columns')
       .select('*')
       .order('order_index');
