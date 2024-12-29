@@ -17,7 +17,6 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const { active } = event;
     setActiveId(active.id);
 
-    // Find the active item in all columns
     for (const column of columns) {
       const activeItem = column.items.find(item => item.id === active.id);
       if (activeItem) {
@@ -72,9 +71,23 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
       return;
     }
 
-    // Update the database first
+    // Optimistically update the UI first
+    setColumns(prevColumns => {
+      const newColumns = [...prevColumns];
+      const sourceColumn = newColumns.find(col => col.id === sourceColumnId);
+      const destColumn = newColumns.find(col => col.id === destinationColumnId);
+
+      if (!sourceColumn || !destColumn) return prevColumns;
+
+      const [movedItem] = sourceColumn.items.splice(sourceIndex, 1);
+      destColumn.items.splice(destinationIndex, 0, movedItem);
+
+      return newColumns;
+    });
+
+    // Then update the database
     try {
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('kanban_items')
         .update({
           column_id: destinationColumnId,
@@ -82,37 +95,32 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         })
         .eq('id', active.id);
 
-      if (error) {
-        console.error('Error updating item:', error);
+      if (updateError) {
+        console.error('Error updating item:', updateError);
+        // Revert the optimistic update on error
+        setColumns(initialColumns);
         return;
       }
 
-      // If database update successful, update local state
-      setColumns(prevColumns => {
-        const newColumns = [...prevColumns];
-        const sourceColumn = newColumns.find(col => col.id === sourceColumnId);
-        const destColumn = newColumns.find(col => col.id === destinationColumnId);
-
-        if (!sourceColumn || !destColumn) return prevColumns;
-
-        const [movedItem] = sourceColumn.items.splice(sourceIndex, 1);
-        destColumn.items.splice(destinationIndex, 0, movedItem);
-
-        // Update order indices for affected items
-        destColumn.items.forEach((item, index) => {
-          supabase
+      // Update order indices in the background
+      const destColumn = columns.find(col => col.id === destinationColumnId);
+      if (destColumn) {
+        const updatedItems = [...destColumn.items];
+        for (let i = 0; i < updatedItems.length; i++) {
+          const { error: orderError } = await supabase
             .from('kanban_items')
-            .update({ order_index: index })
-            .eq('id', item.id)
-            .then(({ error }) => {
-              if (error) console.error('Error updating order index:', error);
-            });
-        });
+            .update({ order_index: i })
+            .eq('id', updatedItems[i].id);
 
-        return newColumns;
-      });
+          if (orderError) {
+            console.error('Error updating order index:', orderError);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error in drag end handler:', error);
+      // Revert the optimistic update on error
+      setColumns(initialColumns);
     }
 
     setActiveId(null);
