@@ -30,6 +30,17 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
 
+    // Get the PDF as an ArrayBuffer
+    const pdfBuffer = await response.arrayBuffer();
+    
+    // Convert to base64
+    const base64Pdf = btoa(
+      new Uint8Array(pdfBuffer)
+        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    console.log('PDF converted to base64');
+
     console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -46,7 +57,19 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `Please analyze this invoice URL: ${pdfUrl} and extract the following information: date, invoice number, total amount, supplier details, and line items.`
+            content: [
+              {
+                type: "text",
+                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:application/pdf;base64,${base64Pdf}`,
+                  detail: "high"
+                }
+              }
+            ]
           }
         ],
         max_tokens: 500,
