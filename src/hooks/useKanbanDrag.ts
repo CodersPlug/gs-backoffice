@@ -34,9 +34,9 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     const overItemIndex = parseInt(String(over.id).split('-')[1]);
 
-    if (activeColumnId === overColumnId) {
-      // Same column drag
-      setColumns(prevColumns => {
+    setColumns(prevColumns => {
+      if (activeColumnId === overColumnId) {
+        // Same column drag
         const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const column = prevColumns[columnIndex];
         const items = arrayMove(column.items, activeItemIndex, overItemIndex);
@@ -44,23 +44,18 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         return prevColumns.map((col, index) =>
           index === columnIndex ? { ...col, items } : col
         );
-      });
-    } else {
-      // Different column drag
-      setColumns(prevColumns => {
+      } else {
+        // Different column drag
         const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
         
-        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) return prevColumns;
-
         const newColumns = [...prevColumns];
         const sourceItems = [...newColumns[sourceColumnIndex].items];
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
         const destinationItems = [...newColumns[destinationColumnIndex].items];
         
         // Insert at the correct position
-        const insertIndex = overItemIndex >= 0 ? overItemIndex : destinationItems.length;
-        destinationItems.splice(insertIndex, 0, movedItem);
+        destinationItems.splice(overItemIndex, 0, movedItem);
 
         newColumns[sourceColumnIndex] = {
           ...newColumns[sourceColumnIndex],
@@ -72,8 +67,8 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         };
 
         return newColumns;
-      });
-    }
+      }
+    });
 
     setActiveId(null);
     setActivePinData(null);
