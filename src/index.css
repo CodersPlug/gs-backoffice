@@ -54,7 +54,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased dark:bg-dark-background dark:text-dark-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  .dark body {
+    @apply bg-dark-background text-dark-foreground;
   }
 }
 
