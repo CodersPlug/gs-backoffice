@@ -10,61 +10,59 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import KanbanColumn from "./KanbanColumn";
 import DragOverlayWrapper from "./DragOverlayWrapper";
 import { useKanbanDrag } from "@/hooks/useKanbanDrag";
-
-const initialPins = [
-  {
-    image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-    title: "Proceso de Onboarding",
-    description: "Guía paso a paso para el proceso de incorporación de nuevos empleados a la empresa.",
-    author: "Sara Johnson"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    title: "Política de Vacaciones",
-    description: "Documento detallado sobre las políticas y procedimientos para solicitud de vacaciones.",
-    author: "Miguel Chen"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475",
-    title: "Manual de Marca",
-    description: "Guía completa sobre el uso correcto de la marca, logotipos y elementos visuales.",
-    author: "Alejandro Turner"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    title: "Protocolo de Seguridad",
-    description: "Procedimientos y normas de seguridad para todas las instalaciones de la empresa.",
-    author: "Emma Blanco"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    title: "Proceso de Ventas",
-    description: "Documentación detallada del proceso de ventas y atención al cliente.",
-    author: "David Molinari"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    title: "Manual de Sistemas",
-    description: "Guía técnica para el uso y mantenimiento de los sistemas internos.",
-    author: "Carlos Negro"
-  }
-];
-
-const initialColumns = [
-  { id: 'blocked', title: 'Bloqueado', items: initialPins.slice(0, 1) },
-  { id: 'todo', title: 'Para Hacer', items: initialPins.slice(1, 3) },
-  { id: 'doing', title: 'Haciendo', items: initialPins.slice(3, 4) },
-  { id: 'done', title: 'Hecho', items: initialPins.slice(4) }
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Column, Pin } from "@/types/kanban";
+import { useToast } from "@/components/ui/use-toast";
 
 const KanbanBoard = () => {
+  const { toast } = useToast();
+
+  const { data: columns = [], isLoading } = useQuery({
+    queryKey: ['kanban-columns'],
+    queryFn: async () => {
+      const { data: columnsData, error: columnsError } = await supabase
+        .from('kanban_columns')
+        .select('*')
+        .order('order_index');
+
+      if (columnsError) {
+        toast({
+          title: "Error loading columns",
+          description: columnsError.message,
+          variant: "destructive",
+        });
+        throw columnsError;
+      }
+
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('kanban_items')
+        .select('*')
+        .order('order_index');
+
+      if (itemsError) {
+        toast({
+          title: "Error loading items",
+          description: itemsError.message,
+          variant: "destructive",
+        });
+        throw itemsError;
+      }
+
+      return columnsData.map(column => ({
+        ...column,
+        items: itemsData.filter(item => item.column_id === column.id) || []
+      }));
+    }
+  });
+
   const {
-    columns,
+    columns: managedColumns,
     activeId,
     activePinData,
     handleDragStart,
     handleDragEnd
-  } = useKanbanDrag(initialColumns);
+  } = useKanbanDrag(columns);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -77,6 +75,14 @@ const KanbanBoard = () => {
     })
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -85,7 +91,7 @@ const KanbanBoard = () => {
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-6 min-h-[calc(100vh-10rem)]">
-        {columns.map((column) => (
+        {managedColumns.map((column) => (
           <KanbanColumn key={column.id} column={column} />
         ))}
       </div>
