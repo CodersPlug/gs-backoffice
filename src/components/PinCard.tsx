@@ -8,13 +8,14 @@ import {
 } from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 interface PinCardProps {
   image: string;
   title: string;
   description: string;
   author: string;
-  id: string;
+  id: UniqueIdentifier;
 }
 
 const PinCard = ({ image, title, description, id }: PinCardProps) => {
