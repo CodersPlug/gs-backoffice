@@ -30,7 +30,9 @@ const PinCardContent = ({
 }: PinCardContentProps) => {
   const shouldShowContent = content && 
     !content.includes('[Ver archivo]') && 
-    !content.includes('bamdlnybhcqkiihpwdlz.supabase.co');
+    !content.includes('bamdlnybhcqkiihpwdlz.supabase.co') &&
+    !content.includes('https://') &&
+    !content.includes('http://');
 
   return (
     <div className="flex-1 space-y-3">

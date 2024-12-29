@@ -29,7 +29,9 @@ const DialogContent = ({
 }: DialogContentProps) => {
   const shouldShowContent = content && 
     !content.includes('[Ver archivo]') && 
-    !content.includes('bamdlnybhcqkiihpwdlz.supabase.co');
+    !content.includes('bamdlnybhcqkiihpwdlz.supabase.co') &&
+    !content.includes('https://') &&
+    !content.includes('http://');
 
   return (
     <div className="mt-4 space-y-6">
