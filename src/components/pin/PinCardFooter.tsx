@@ -1,30 +1,39 @@
-import React from 'react';
-import { Maximize2, Trash2 } from 'lucide-react';
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { Maximize2, Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "@/hooks/use-toast"
 
 interface PinCardFooterProps {
-  onOpenDialog: () => void;
-  id: string;
+  id: string
+  onMaximize?: () => void
 }
 
-const PinCardFooter = ({ onOpenDialog, id }: PinCardFooterProps) => {
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+export function PinCardFooter({ id, onMaximize }: PinCardFooterProps) {
+  const queryClient = useQueryClient()
+
+  const handleDelete = async () => {
     try {
       const { error } = await supabase
         .from('kanban_items')
         .update({ deleted: true })
-        .eq('id', id);
+        .eq('id', id)
 
-      if (error) throw error;
-      
-      toast.success("Card deleted successfully");
+      if (error) throw error
+
+      await queryClient.invalidateQueries({ queryKey: ['kanban'] })
+      toast({
+        title: "¡Listo!",
+        description: "La tarjeta fue eliminada correctamente, che",
+      })
     } catch (error) {
-      console.error('Error deleting card:', error);
-      toast.error("Failed to delete card");
+      console.error('Error deleting card:', error)
+      toast({
+        variant: "destructive",
+        title: "¡Uy, che!",
+        description: "Hubo un problema al eliminar la tarjeta",
+      })
     }
-  };
+  }
 
   return (
     <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
@@ -37,16 +46,11 @@ const PinCardFooter = ({ onOpenDialog, id }: PinCardFooterProps) => {
         </button>
         <button 
           className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenDialog();
-          }}
+          onClick={onMaximize}
         >
           <Maximize2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
         </button>
       </div>
     </div>
-  );
-};
-
-export default PinCardFooter;
+  )
+}
