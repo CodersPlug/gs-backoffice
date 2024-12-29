@@ -36,8 +36,8 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
     transform: CSS.Transform.toString(transform),
     transition,
     cursor: 'move',
-    opacity: 1,
-    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0 : 1,
+    display: isDragging ? 'none' : 'block',
   };
 
   const handleDialogClose = (e: React.MouseEvent) => {
@@ -53,7 +53,7 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
         {...attributes}
         {...listeners}
         className={`group relative w-full rounded-lg overflow-hidden transform transition-all duration-200 
-          ${isDragging ? 'shadow-lg scale-105 rotate-2' : 'hover:-translate-y-1'} 
+          hover:-translate-y-1
           bg-white dark:bg-dark-background border border-gray-100 dark:border-dark-border shadow-sm`}
         onClick={(e) => {
           if (!isDragging) {
