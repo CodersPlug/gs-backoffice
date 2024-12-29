@@ -1,7 +1,7 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import PinCard from "./PinCard";
-import { Column, Pin } from "@/types/kanban";
+import { Column } from "@/types/kanban";
 
 interface KanbanColumnProps {
   column: Column;
@@ -21,21 +21,17 @@ const KanbanColumn = ({ column }: KanbanColumnProps) => {
         {column.title}
       </h2>
       <SortableContext
-        items={column.items.map((item, index) => `${column.id}-${index}`)}
+        items={column.items.map((_, index) => `${column.id}-${index}`)}
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-4">
-          {column.items.map((pin: Pin, index) => (
+          {column.items.map((pin, index) => (
             <div
               key={`${column.id}-${index}`}
               className="animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <PinCard 
-                {...pin} 
-                id={`${column.id}-${index}`}
-                originalId={pin.id}
-              />
+              <PinCard {...pin} id={`${column.id}-${index}`} />
             </div>
           ))}
         </div>

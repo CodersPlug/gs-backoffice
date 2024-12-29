@@ -12,9 +12,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (initialColumns) {
-      setColumns(initialColumns);
-    }
+    setColumns(initialColumns);
   }, [initialColumns]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -24,8 +22,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeColumnId = String(active.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     const activeColumn = columns.find(col => col.id === activeColumnId);
-    
-    if (activeColumn && activeColumn.items[activeItemIndex]) {
+    if (activeColumn) {
       setActivePinData(activeColumn.items[activeItemIndex]);
     }
   };
@@ -52,7 +49,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || !active) {
+    if (!over) {
       setActiveId(null);
       setActivePinData(null);
       return;
@@ -61,129 +58,97 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const activeColumnId = String(active.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
     
-    const sourceColumn = columns.find(col => col.id === activeColumnId);
-    if (!sourceColumn || !sourceColumn.items[activeItemIndex]) {
-      setActiveId(null);
-      setActivePinData(null);
-      return;
-    }
-
-    const movedItem = sourceColumn.items[activeItemIndex];
-
-    try {
-      // Handle dropping on a column (empty column case)
-      if (!String(over.id).includes('-')) {
-        const destinationColumnId = String(over.id);
-        const destinationColumn = columns.find(col => col.id === destinationColumnId);
+    // Handle dropping on a column (empty column case)
+    if (!String(over.id).includes('-')) {
+      const destinationColumnId = String(over.id);
+      const sourceColumn = columns.find(col => col.id === activeColumnId);
+      const destinationColumn = columns.find(col => col.id === destinationColumnId);
+      
+      if (sourceColumn && destinationColumn) {
+        const [movedItem] = sourceColumn.items.splice(activeItemIndex, 1);
+        const newOrderIndex = destinationColumn.items.length;
         
-        if (destinationColumn) {
-          // Update local state first
+        try {
+          await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
+          
           setColumns(prevColumns => {
             const newColumns = [...prevColumns];
             const sourceColumnIndex = newColumns.findIndex(col => col.id === activeColumnId);
             const destinationColumnIndex = newColumns.findIndex(col => col.id === destinationColumnId);
             
-            if (sourceColumnIndex !== -1 && destinationColumnIndex !== -1) {
-              // Remove from source
-              newColumns[sourceColumnIndex] = {
-                ...sourceColumn,
-                items: sourceColumn.items.filter((_, index) => index !== activeItemIndex)
-              };
-              
-              // Add to destination
-              newColumns[destinationColumnIndex] = {
-                ...destinationColumn,
-                items: [...destinationColumn.items, movedItem]
-              };
-            }
+            newColumns[sourceColumnIndex] = {
+              ...sourceColumn,
+              items: sourceColumn.items
+            };
+            
+            newColumns[destinationColumnIndex] = {
+              ...destinationColumn,
+              items: [...destinationColumn.items, movedItem]
+            };
             
             return newColumns;
           });
-
-          // Then sync with database
-          const newOrderIndex = destinationColumn.items.length;
-          await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
+        } catch (error) {
+          console.error('Failed to update item:', error);
         }
-      } else {
-        const overColumnId = String(over.id).split('-')[0];
-        const overItemIndex = parseInt(String(over.id).split('-')[1]);
-        
-        const destinationColumn = columns.find(col => col.id === overColumnId);
-        if (!destinationColumn) {
-          setActiveId(null);
-          setActivePinData(null);
-          return;
-        }
-
+      }
+    } else {
+      const overColumnId = String(over.id).split('-')[0];
+      const overItemIndex = parseInt(String(over.id).split('-')[1]);
+      
+      try {
         if (activeColumnId === overColumnId) {
-          // Same column drag - Update local state first
-          const items = arrayMove(sourceColumn.items, activeItemIndex, overItemIndex);
-          setColumns(prevColumns =>
-            prevColumns.map(col =>
-              col.id === activeColumnId ? { ...col, items } : col
-            )
-          );
+          // Same column drag
+          const columnIndex = columns.findIndex(col => col.id === activeColumnId);
+          const column = columns[columnIndex];
+          const items = arrayMove(column.items, activeItemIndex, overItemIndex);
           
-          // Then sync with database
+          // Update order indexes in database
           await Promise.all(items.map((item, index) => 
             updateItemInDatabase(item, activeColumnId, index)
           ));
+          
+          setColumns(prevColumns =>
+            prevColumns.map((col, index) =>
+              index === columnIndex ? { ...col, items } : col
+            )
+          );
         } else {
-          // Different column drag - Update local state first
-          setColumns(prevColumns => {
-            const newColumns = [...prevColumns];
-            const sourceColumnIndex = newColumns.findIndex(col => col.id === activeColumnId);
-            const destinationColumnIndex = newColumns.findIndex(col => col.id === overColumnId);
-            
-            if (sourceColumnIndex !== -1 && destinationColumnIndex !== -1) {
-              const newSourceItems = [...sourceColumn.items];
-              newSourceItems.splice(activeItemIndex, 1);
-              
-              const newDestinationItems = [...destinationColumn.items];
-              newDestinationItems.splice(overItemIndex, 0, movedItem);
-              
-              newColumns[sourceColumnIndex] = {
-                ...sourceColumn,
-                items: newSourceItems
-              };
-              
-              newColumns[destinationColumnIndex] = {
-                ...destinationColumn,
-                items: newDestinationItems
-              };
-            }
-            
-            return newColumns;
-          });
+          // Different column drag
+          const sourceColumnIndex = columns.findIndex(col => col.id === activeColumnId);
+          const destinationColumnIndex = columns.findIndex(col => col.id === overColumnId);
           
-          // Then sync with database
-          const newSourceItems = sourceColumn.items.filter((_, index) => index !== activeItemIndex);
-          const newDestinationItems = [
-            ...destinationColumn.items.slice(0, overItemIndex),
-            movedItem,
-            ...destinationColumn.items.slice(overItemIndex)
-          ];
+          const newColumns = [...columns];
+          const sourceItems = [...newColumns[sourceColumnIndex].items];
+          const [movedItem] = sourceItems.splice(activeItemIndex, 1);
+          const destinationItems = [...newColumns[destinationColumnIndex].items];
           
+          destinationItems.splice(overItemIndex, 0, movedItem);
+          
+          // Update order indexes in database
           await Promise.all([
-            ...newSourceItems.map((item, index) => 
+            ...sourceItems.map((item, index) => 
               updateItemInDatabase(item, activeColumnId, index)
             ),
-            ...newDestinationItems.map((item, index) => 
+            ...destinationItems.map((item, index) => 
               updateItemInDatabase(item, overColumnId, index)
             )
           ]);
+          
+          newColumns[sourceColumnIndex] = {
+            ...newColumns[sourceColumnIndex],
+            items: sourceItems
+          };
+          newColumns[destinationColumnIndex] = {
+            ...newColumns[destinationColumnIndex],
+            items: destinationItems
+          };
+          
+          setColumns(newColumns);
         }
+      } catch (error) {
+        console.error('Failed to update items:', error);
       }
-    } catch (error) {
-      console.error('Failed to update items:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update items positions",
-        variant: "destructive",
-      });
-      
-      // Revert to initial columns state on error
-      setColumns(initialColumns);
     }
 
     setActiveId(null);
