@@ -12,8 +12,8 @@ import DragOverlayWrapper from "./DragOverlayWrapper";
 import { useKanbanDrag } from "@/hooks/useKanbanDrag";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Column } from "@/types/kanban";
 import { useToast } from "@/components/ui/use-toast";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 const KanbanBoard = () => {
   const { toast } = useToast();
@@ -76,11 +76,7 @@ const KanbanBoard = () => {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
