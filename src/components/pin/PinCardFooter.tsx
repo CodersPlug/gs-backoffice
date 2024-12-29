@@ -22,16 +22,16 @@ export function PinCardFooter({ id, onMaximize }: PinCardFooterProps) {
 
       await queryClient.invalidateQueries({ queryKey: ['kanban'] })
       toast({
-        title: "Success",
-        description: "The card has been deleted successfully",
-        duration: 3000, // Will disappear after 3 seconds
+        title: "Éxito",
+        description: "La tarjeta ha sido eliminada exitosamente",
+        duration: 3000,
       })
     } catch (error) {
       console.error('Error deleting card:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "There was a problem deleting the card",
+        description: "Hubo un problema al eliminar la tarjeta",
         duration: 3000,
       })
     }
