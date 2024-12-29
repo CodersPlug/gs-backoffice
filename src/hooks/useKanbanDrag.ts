@@ -12,7 +12,9 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    setColumns(initialColumns);
+    if (initialColumns) {
+      setColumns(initialColumns);
+    }
   }, [initialColumns]);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -68,13 +70,13 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
 
     const movedItem = sourceColumn.items[activeItemIndex];
 
-    // Handle dropping on a column (empty column case)
-    if (!String(over.id).includes('-')) {
-      const destinationColumnId = String(over.id);
-      const destinationColumn = columns.find(col => col.id === destinationColumnId);
-      
-      if (destinationColumn) {
-        try {
+    try {
+      // Handle dropping on a column (empty column case)
+      if (!String(over.id).includes('-')) {
+        const destinationColumnId = String(over.id);
+        const destinationColumn = columns.find(col => col.id === destinationColumnId);
+        
+        if (destinationColumn) {
           const newOrderIndex = destinationColumn.items.length;
           await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
           
@@ -99,32 +101,20 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
             
             return newColumns;
           });
-        } catch (error) {
-          console.error('Failed to update item:', error);
-          toast({
-            title: "Error",
-            description: "Failed to update item position",
-            variant: "destructive",
-          });
         }
-      }
-    } else {
-      const overColumnId = String(over.id).split('-')[0];
-      const overItemIndex = parseInt(String(over.id).split('-')[1]);
-      
-      const destinationColumn = columns.find(col => col.id === overColumnId);
-      if (!destinationColumn) {
-        setActiveId(null);
-        setActivePinData(null);
-        return;
-      }
+      } else {
+        const overColumnId = String(over.id).split('-')[0];
+        const overItemIndex = parseInt(String(over.id).split('-')[1]);
+        
+        const destinationColumn = columns.find(col => col.id === overColumnId);
+        if (!destinationColumn) {
+          setActiveId(null);
+          setActivePinData(null);
+          return;
+        }
 
-      try {
         if (activeColumnId === overColumnId) {
           // Same column drag
-          const columnIndex = columns.findIndex(col => col.id === activeColumnId);
-          if (columnIndex === -1) return;
-
           const items = arrayMove(sourceColumn.items, activeItemIndex, overItemIndex);
           
           // Update order indexes in database
@@ -133,52 +123,48 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
           ));
           
           setColumns(prevColumns =>
-            prevColumns.map((col, index) =>
-              index === columnIndex ? { ...col, items } : col
+            prevColumns.map(col =>
+              col.id === activeColumnId ? { ...col, items } : col
             )
           );
         } else {
           // Different column drag
-          const sourceColumnIndex = columns.findIndex(col => col.id === activeColumnId);
-          const destinationColumnIndex = columns.findIndex(col => col.id === overColumnId);
+          const newSourceItems = [...sourceColumn.items];
+          newSourceItems.splice(activeItemIndex, 1);
           
-          if (sourceColumnIndex === -1 || destinationColumnIndex === -1) return;
-
-          const newColumns = [...columns];
-          const sourceItems = [...newColumns[sourceColumnIndex].items];
-          sourceItems.splice(activeItemIndex, 1);
-          const destinationItems = [...newColumns[destinationColumnIndex].items];
-          destinationItems.splice(overItemIndex, 0, movedItem);
+          const newDestinationItems = [...destinationColumn.items];
+          newDestinationItems.splice(overItemIndex, 0, movedItem);
           
           // Update order indexes in database
           await Promise.all([
-            ...sourceItems.map((item, index) => 
+            ...newSourceItems.map((item, index) => 
               updateItemInDatabase(item, activeColumnId, index)
             ),
-            ...destinationItems.map((item, index) => 
+            ...newDestinationItems.map((item, index) => 
               updateItemInDatabase(item, overColumnId, index)
             )
           ]);
           
-          newColumns[sourceColumnIndex] = {
-            ...newColumns[sourceColumnIndex],
-            items: sourceItems
-          };
-          newColumns[destinationColumnIndex] = {
-            ...newColumns[destinationColumnIndex],
-            items: destinationItems
-          };
-          
-          setColumns(newColumns);
+          setColumns(prevColumns =>
+            prevColumns.map(col => {
+              if (col.id === activeColumnId) {
+                return { ...col, items: newSourceItems };
+              }
+              if (col.id === overColumnId) {
+                return { ...col, items: newDestinationItems };
+              }
+              return col;
+            })
+          );
         }
-      } catch (error) {
-        console.error('Failed to update items:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update items positions",
-          variant: "destructive",
-        });
       }
+    } catch (error) {
+      console.error('Failed to update items:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update items positions",
+        variant: "destructive",
+      });
     }
 
     setActiveId(null);
