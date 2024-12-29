@@ -47,75 +47,43 @@ serve(async (req) => {
     // Get the first page
     const page = await pdf.getPage(1);
     
-    // Render the page to a canvas
-    const viewport = page.getViewport({ scale: 2.0 });
-    const canvas = new OffscreenCanvas(viewport.width, viewport.height);
-    const context = canvas.getContext('2d');
-    
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
+    // Extract text content
+    const textContent = await page.getTextContent();
+    const text = textContent.items.map((item: any) => item.str).join(' ');
 
-    // Convert canvas to PNG and then to base64
-    const imageBlob = await canvas.convertToBlob({ type: 'image/png' });
-    const imageArrayBuffer = await imageBlob.arrayBuffer();
-    const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)))}`;
+    // Simple regex patterns for common invoice fields
+    const patterns = {
+      invoiceNumber: /(?:Invoice|Factura)[\s#:]+([A-Z0-9-]+)/i,
+      date: /(?:Date|Fecha)[\s:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i,
+      total: /(?:Total|Amount|Monto)[\s:]*[\$€]?\s*([\d,.]+)/i,
+      supplier: /(?:From|De|Supplier|Proveedor)[\s:]+([^\n]+)/i,
+    };
 
-    // Call OpenAI API with the converted image
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "gpt-4-vision-preview",
-        messages: [
-          {
-            role: "system",
-            content: "Extract key information from invoices in a clear format. Focus on essential details only."
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: base64Image
-                }
-              }
-            ]
-          }
-        ]
-      })
-    });
+    // Extract data using regex
+    const extractedData = {
+      invoiceNumber: text.match(patterns.invoiceNumber)?.[1] || 'Not found',
+      date: text.match(patterns.date)?.[1] || 'Not found',
+      total: text.match(patterns.total)?.[1] || 'Not found',
+      supplier: text.match(patterns.supplier)?.[1] || 'Not found',
+      rawText: text // Include raw text for debugging
+    };
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
-      console.error('OpenAI API error response:', errorText);
-      throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorText}`);
-    }
+    console.log('Extracted data:', extractedData);
 
-    const data = await openAIResponse.json();
-    console.log('OpenAI API response:', data);
-
-    if (!data.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response from OpenAI');
-    }
-
-    const extractedInfo = data.choices[0].message.content;
+    // Format the extracted information
+    const formattedInfo = `
+Invoice Number: ${extractedData.invoiceNumber}
+Date: ${extractedData.date}
+Total Amount: ${extractedData.total}
+Supplier: ${extractedData.supplier}
+    `.trim();
 
     // Update the kanban item with the extracted information
     const { error: updateError } = await supabase
       .from('kanban_items')
       .update({ 
-        description: extractedInfo,
-        content: extractedInfo
+        description: formattedInfo,
+        content: JSON.stringify(extractedData, null, 2)
       })
       .eq('source_info', pdfUrl);
 
@@ -128,7 +96,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         message: 'PDF processed successfully',
-        extractedInfo 
+        extractedData 
       }),
       { 
         headers: { 
