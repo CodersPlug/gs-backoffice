@@ -1,7 +1,7 @@
 import { UniqueIdentifier } from "@dnd-kit/core";
 
 export interface Pin {
-  id: string;
+  id: UniqueIdentifier;
   image?: string;
   title: string;
   description: string | null;

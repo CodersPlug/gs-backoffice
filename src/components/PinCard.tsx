@@ -8,12 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { UniqueIdentifier } from "@dnd-kit/core";
 import { Pin } from "@/types/kanban";
 
-interface PinCardProps extends Pin {
-  id: UniqueIdentifier;
-}
+type PinCardProps = Pin;
 
 const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
