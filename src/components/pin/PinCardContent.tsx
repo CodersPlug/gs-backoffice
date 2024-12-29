@@ -36,7 +36,7 @@ const PinCardContent = ({
         {description}
       </p>
 
-      {content && (
+      {content && !content.includes('[Ver archivo]') && (
         <div className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-3">
           {content}
         </div>

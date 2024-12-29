@@ -34,7 +34,7 @@ const DialogContent = ({
           {description}
         </p>
 
-        {content && (
+        {content && !content.includes('[Ver archivo]') && (
           <div className="text-gray-600 dark:text-dark-foreground/80 prose dark:prose-invert">
             {content}
           </div>
