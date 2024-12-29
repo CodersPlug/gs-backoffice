@@ -17,12 +17,17 @@ const ImagePreview = ({ image, sourceInfo }: ImagePreviewProps) => {
 
   // If there's a source that's not an image (like a PDF), show document preview
   if (!hasValidImage && hasSourceInfo) {
+    const fileName = sourceInfo?.split('/').pop() || 'Document';
     return (
-      <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-gray-100 dark:bg-dark-muted flex items-center justify-center">
-        <div className="text-center p-4">
-          <div className="text-gray-500 dark:text-dark-foreground/60 text-sm">
-            📄 Document Preview
-          </div>
+      <div className="relative w-full mb-3 p-4 rounded-lg bg-gray-100 dark:bg-dark-muted/50 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 dark:text-dark-foreground/60">📄</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-dark-foreground/80 truncate">
+            {fileName}
+          </span>
+        </div>
+        <div className="text-xs text-gray-500 dark:text-dark-foreground/60">
+          Archivo subido a través del Asistente AI
         </div>
       </div>
     );
