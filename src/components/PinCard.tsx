@@ -1,14 +1,10 @@
 import { useState } from "react";
-import { MessageCircle, Eye, EyeOff } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { UniqueIdentifier } from "@dnd-kit/core";
+import PinCardContent from "./pin/PinCardContent";
+import PinCardFooter from "./pin/PinCardFooter";
+import PinCardDialog from "./pin/PinCardDialog";
 
 interface PinCardProps {
   image: string;
@@ -20,7 +16,6 @@ interface PinCardProps {
 
 const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isEyeHovered, setIsEyeHovered] = useState(false);
   
   const {
     attributes,
@@ -61,55 +56,17 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
         }}
       >
         <div className="relative p-4 pb-2">
-          <div className="flex-1 space-y-3">
-            <h3 className="font-medium text-gray-900 dark:text-dark-foreground line-clamp-1">{title}</h3>
-            <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">{description}</p>
-          </div>
-          <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
-            <div className="flex items-center justify-end">
-              <button 
-                className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(true);
-                }}
-                onMouseEnter={() => setIsEyeHovered(true)}
-                onMouseLeave={() => setIsEyeHovered(false)}
-              >
-                {isEyeHovered ? (
-                  <EyeOff className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-                ) : (
-                  <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-                )}
-              </button>
-            </div>
-          </div>
+          <PinCardContent title={title} description={description} />
+          <PinCardFooter onOpenDialog={() => setIsOpen(true)} />
         </div>
       </div>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px] animate-in zoom-in-90 duration-700 ease-in-out dark:bg-dark-background">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold dark:text-dark-foreground">{title}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="space-y-4">
-              <p className="text-gray-600 dark:text-dark-foreground/80">{description}</p>
-              <div className="flex justify-end">
-                <button 
-                  className="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }}
-                >
-                  <MessageCircle className="h-4 w-4 text-gray-500 dark:text-dark-foreground/60" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PinCardDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        title={title}
+        description={description}
+      />
     </>
   );
 };
