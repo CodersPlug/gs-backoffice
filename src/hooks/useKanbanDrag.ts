@@ -31,52 +31,49 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
 
     const activeColumnId = String(active.id).split('-')[0];
     const overColumnId = String(over.id).split('-')[0];
+    const activeItemIndex = parseInt(String(active.id).split('-')[1]);
+    const overItemIndex = parseInt(String(over.id).split('-')[1]);
 
-    if (activeColumnId !== overColumnId) {
+    // If dropping in the same column
+    if (activeColumnId === overColumnId) {
       setColumns(prevColumns => {
-        const activeColumn = prevColumns.find(col => col.id === activeColumnId);
-        const overColumn = prevColumns.find(col => col.id === overColumnId);
-
-        if (!activeColumn || !overColumn) return prevColumns;
-
-        const activeItemIndex = parseInt(String(active.id).split('-')[1]);
-        const overItemIndex = parseInt(String(over.id).split('-')[1]);
-        const item = activeColumn.items[activeItemIndex];
-
-        return prevColumns.map(col => {
-          if (col.id === activeColumnId) {
-            return {
-              ...col,
-              items: col.items.filter((_, index) => index !== activeItemIndex)
-            };
-          }
-          if (col.id === overColumnId) {
-            const newItems = [...col.items];
-            if (overItemIndex >= 0) {
-              newItems.splice(overItemIndex, 0, item);
-            } else {
-              newItems.push(item);
-            }
-            return {
-              ...col,
-              items: newItems
-            };
-          }
-          return col;
-        });
-      });
-    } else {
-      const columnIndex = columns.findIndex(col => col.id === activeColumnId);
-      const itemIndex = parseInt(String(active.id).split('-')[1]);
-      const overItemIndex = parseInt(String(over.id).split('-')[1]);
-
-      setColumns(prevColumns => {
+        const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const column = prevColumns[columnIndex];
-        const items = arrayMove(column.items, itemIndex, overItemIndex);
+        const items = arrayMove(column.items, activeItemIndex, overItemIndex);
 
         return prevColumns.map((col, index) =>
           index === columnIndex ? { ...col, items } : col
         );
+      });
+    } 
+    // If dropping in a different column
+    else {
+      setColumns(prevColumns => {
+        const sourceColumn = prevColumns.find(col => col.id === activeColumnId);
+        const destinationColumn = prevColumns.find(col => col.id === overColumnId);
+
+        if (!sourceColumn || !destinationColumn) return prevColumns;
+
+        const sourceItems = [...sourceColumn.items];
+        const [movedItem] = sourceItems.splice(activeItemIndex, 1);
+        const destinationItems = [...destinationColumn.items];
+
+        // Insert at the correct position in the destination column
+        if (Number.isInteger(overItemIndex)) {
+          destinationItems.splice(overItemIndex, 0, movedItem);
+        } else {
+          destinationItems.push(movedItem);
+        }
+
+        return prevColumns.map(col => {
+          if (col.id === activeColumnId) {
+            return { ...col, items: sourceItems };
+          }
+          if (col.id === overColumnId) {
+            return { ...col, items: destinationItems };
+          }
+          return col;
+        });
       });
     }
 
