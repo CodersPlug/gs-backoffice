@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { Document } from "https://deno.land/x/pdf@v0.1.1/mod.ts";
+import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,19 +36,31 @@ serve(async (req) => {
 
     const pdfArrayBuffer = await pdfResponse.arrayBuffer();
     
-    // Load the PDF document using the Deno PDF library
-    const document = new Document(pdfArrayBuffer);
-    const pages = document.getPages();
-    
-    // Convert first page to PNG
-    const firstPage = pages[0];
-    const pngData = await firstPage.render({
-      format: "png",
-      scale: 2.0, // Higher scale for better quality
-    });
+    // Initialize PDF.js worker
+    const pdfjsWorker = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js');
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
-    // Convert PNG data to base64
-    const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(pngData)))}`;
+    // Load the PDF document
+    const loadingTask = pdfjs.getDocument({ data: pdfArrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    // Get the first page
+    const page = await pdf.getPage(1);
+    
+    // Render the page to a canvas
+    const viewport = page.getViewport({ scale: 2.0 });
+    const canvas = new OffscreenCanvas(viewport.width, viewport.height);
+    const context = canvas.getContext('2d');
+    
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise;
+
+    // Convert canvas to PNG and then to base64
+    const imageBlob = await canvas.convertToBlob({ type: 'image/png' });
+    const imageArrayBuffer = await imageBlob.arrayBuffer();
+    const base64Image = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)))}`;
 
     // Call OpenAI API with the converted image
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -58,7 +70,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4-vision-preview",
         messages: [
           {
             role: "system",
