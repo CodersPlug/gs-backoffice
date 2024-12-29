@@ -1,4 +1,3 @@
-import ImagePreview from './card/ImagePreview';
 import TitleSection from './card/TitleSection';
 import TagsList from './card/TagsList';
 import MetaInfo from './card/MetaInfo';
@@ -31,8 +30,6 @@ const PinCardContent = ({
 }: PinCardContentProps) => {
   return (
     <div className="flex-1 space-y-3">
-      <ImagePreview image={image} sourceInfo={sourceInfo} />
-      
       <TitleSection icon={icon} title={title} />
 
       <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">
