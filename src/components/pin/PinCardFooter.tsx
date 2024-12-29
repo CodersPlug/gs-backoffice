@@ -52,18 +52,18 @@ export function PinCardFooter({ id, onMaximize, sourceInfo }: PinCardFooterProps
   return (
     <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
       <div className="flex items-center justify-between">
+        <button 
+          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+          )}
+        </button>
         <div className="flex items-center gap-2">
-          <button 
-            className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <Loader2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-            )}
-          </button>
           {sourceInfo && (
             <button 
               className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
@@ -72,13 +72,13 @@ export function PinCardFooter({ id, onMaximize, sourceInfo }: PinCardFooterProps
               <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
             </button>
           )}
+          <button 
+            className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
+            onClick={onMaximize}
+          >
+            <Maximize2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+          </button>
         </div>
-        <button 
-          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-          onClick={onMaximize}
-        >
-          <Maximize2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-        </button>
       </div>
     </div>
   )
