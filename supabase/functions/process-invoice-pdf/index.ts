@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,7 +27,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Call OpenAI API directly with the PDF URL
+    // Fetch the PDF content first to verify it exists and is accessible
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+    }
+
+    // Call OpenAI API with minimal configuration
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -52,21 +57,19 @@ serve(async (req) => {
               {
                 type: "image_url",
                 image_url: {
-                  url: pdfUrl,
-                  detail: "high"
+                  url: pdfUrl
                 }
               }
             ]
           }
-        ],
-        max_tokens: 500,
-      }),
+        ]
+      })
     });
 
     if (!openAIResponse.ok) {
-      const errorData = await openAIResponse.text();
-      console.error('OpenAI API error response:', errorData);
-      throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorData}`);
+      const errorText = await openAIResponse.text();
+      console.error('OpenAI API error response:', errorText);
+      throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorText}`);
     }
 
     const data = await openAIResponse.json();
@@ -83,6 +86,7 @@ serve(async (req) => {
       .from('kanban_items')
       .update({ 
         description: extractedInfo,
+        content: extractedInfo // Also store in content field for backup
       })
       .eq('source_info', pdfUrl);
 
@@ -93,6 +97,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
+        success: true,
         message: 'PDF processed successfully',
         extractedInfo 
       }),
@@ -100,7 +105,8 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
-        } 
+        },
+        status: 200
       }
     );
   } catch (error) {
@@ -115,7 +121,7 @@ serve(async (req) => {
           ...corsHeaders, 
           'Content-Type': 'application/json' 
         },
-        status: 400 
+        status: 500
       }
     );
   }
