@@ -7,6 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,8 +16,6 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting PDF processing...');
-    
     const { pdfUrl } = await req.json();
     
     if (!pdfUrl) {
@@ -30,56 +30,72 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
 
-    // Get the PDF as an ArrayBuffer
+    // Get the PDF content
     const pdfBuffer = await response.arrayBuffer();
-    
-    // Convert to base64
-    const base64Pdf = btoa(
-      new Uint8Array(pdfBuffer)
-        .reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
+    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
 
-    console.log('PDF converted to base64');
+    console.log('PDF downloaded and converted to base64');
 
-    console.log('Calling OpenAI API...');
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "Extract key information from invoices in a clear format. Focus on essential details only."
+    // Implement retry logic for OpenAI API
+    let retries = 3;
+    let openAIResponse;
+    let error;
+
+    while (retries > 0) {
+      try {
+        console.log(`Attempting OpenAI API call. Retries left: ${retries}`);
+        openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+            'Content-Type': 'application/json',
           },
-          {
-            role: "user",
-            content: [
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
               {
-                type: "text",
-                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
+                role: "system",
+                content: "Extract key information from invoices in a clear format. Focus on essential details only."
               },
               {
-                type: "image_url",
-                image_url: {
-                  url: `data:application/pdf;base64,${base64Pdf}`,
-                  detail: "high"
-                }
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
+                  },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: `data:application/pdf;base64,${pdfBase64}`,
+                      detail: "high"
+                    }
+                  }
+                ]
               }
-            ]
-          }
-        ],
-        max_tokens: 500,
-      }),
-    });
+            ],
+            max_tokens: 500,
+          }),
+        });
 
-    if (!openAIResponse.ok) {
-      const errorData = await openAIResponse.text();
-      console.error('OpenAI API error response:', errorData);
-      throw new Error(`OpenAI API error: ${openAIResponse.statusText} - ${errorData}`);
+        if (!openAIResponse.ok) {
+          const errorData = await openAIResponse.text();
+          throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorData}`);
+        }
+
+        break; // Success, exit retry loop
+      } catch (e) {
+        error = e;
+        retries--;
+        if (retries > 0) {
+          console.log(`OpenAI API call failed. Retrying in 2 seconds...`);
+          await delay(2000); // Wait 2 seconds before retrying
+        }
+      }
+    }
+
+    if (!openAIResponse?.ok) {
+      throw error || new Error('Failed to process PDF after all retries');
     }
 
     const data = await openAIResponse.json();
@@ -90,7 +106,6 @@ serve(async (req) => {
     }
 
     const extractedInfo = data.choices[0].message.content;
-    console.log('Extracted information:', extractedInfo);
 
     // Initialize Supabase client
     const supabase = createClient(
