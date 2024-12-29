@@ -77,11 +77,6 @@ const PinCard = ({
         className={`group relative w-full rounded-lg overflow-hidden transform transition-all duration-200 
           ${isDragging ? 'shadow-lg scale-105 rotate-2' : 'hover:-translate-y-1'} 
           bg-white dark:bg-dark-background border border-gray-100 dark:border-dark-border shadow-sm`}
-        onClick={(e) => {
-          if (!isDragging) {
-            setIsOpen(true);
-          }
-        }}
       >
         <div className="relative p-4 pb-2">
           <PinCardContent 
