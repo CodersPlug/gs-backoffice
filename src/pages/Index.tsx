@@ -41,16 +41,35 @@ const pins = [
   }
 ];
 
+const columns = [
+  { id: 'blocked', title: 'Bloqueado', items: pins.slice(0, 1) },
+  { id: 'todo', title: 'Para Hacer', items: pins.slice(1, 3) },
+  { id: 'doing', title: 'Haciendo', items: pins.slice(3, 4) },
+  { id: 'done', title: 'Hecho', items: pins.slice(4) }
+];
+
 const Index = () => {
   return (
     <div className="flex flex-col min-h-screen bg-dark-background">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pins.map((pin, index) => (
-            <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              <PinCard {...pin} />
+      <main className="flex-1 container mx-auto px-4 pt-20 pb-8 overflow-x-auto">
+        <div className="flex gap-6 min-h-[calc(100vh-10rem)]">
+          {columns.map((column) => (
+            <div
+              key={column.id}
+              className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4"
+            >
+              <h2 className="text-lg font-semibold mb-4 text-dark-foreground">
+                {column.title}
+              </h2>
+              <div className="space-y-4">
+                {column.items.map((pin, index) => (
+                  <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <PinCard {...pin} />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
