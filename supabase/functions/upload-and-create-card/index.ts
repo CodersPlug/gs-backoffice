@@ -43,35 +43,6 @@ serve(async (req) => {
       .from('uploads')
       .getPublicUrl(filePath)
 
-    let imageUrl = null
-
-    // If the file is a PDF, generate a snapshot
-    if (fileExt.toLowerCase() === 'pdf') {
-      try {
-        console.log('Generating PDF snapshot...')
-        const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-pdf`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-          },
-          body: JSON.stringify({ pdfUrl: publicUrl }),
-        })
-
-        if (!response.ok) {
-          console.error('Failed to process PDF:', await response.text())
-          throw new Error('Failed to process PDF')
-        }
-        
-        const { snapshotUrl } = await response.json()
-        console.log('Generated snapshot URL:', snapshotUrl)
-        imageUrl = snapshotUrl
-      } catch (error) {
-        console.error('Error processing PDF:', error)
-        // Continue without thumbnail if PDF processing fails
-      }
-    }
-
     // Get the "Para Hacer" column
     const { data: columns, error: columnsError } = await supabase
       .from('kanban_columns')
@@ -103,8 +74,7 @@ serve(async (req) => {
         description: `Archivo subido a través del Asistente AI`,
         content: `[Ver archivo](${publicUrl})`,
         order_index: newOrderIndex,
-        source_info: publicUrl,
-        image: imageUrl // Store the snapshot URL in the image field
+        source_info: publicUrl
       })
       .select()
       .single()
