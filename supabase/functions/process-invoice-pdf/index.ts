@@ -36,11 +36,17 @@ serve(async (req) => {
     const pdfData = await pdfResponse.arrayBuffer();
     console.log('PDF fetched successfully, loading document...');
 
-    // Configure PDF.js for Node environment
-    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsLib.PDFWorker;
+    // Configure PDF.js for Deno environment
+    if (typeof window === 'undefined') {
+      // @ts-ignore - Deno environment specific configuration
+      globalThis.window = {
+        pdfjsLib: pdfjsLib
+      };
+    }
 
-    // Load the PDF document
-    const pdfDocument = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    // Load the PDF document without worker (not needed in Deno environment)
+    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+    const pdfDocument = await loadingTask.promise;
     console.log('PDF document loaded, extracting text...');
 
     // Extract text from all pages
