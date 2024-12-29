@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   DndContext,
-  closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -110,6 +110,7 @@ const KanbanBoard = () => {
         if (!activeColumn || !overColumn) return prevColumns;
 
         const activeItemIndex = parseInt(String(active.id).split('-')[1]);
+        const overItemIndex = parseInt(String(over.id).split('-')[1]);
         const item = activeColumn.items[activeItemIndex];
 
         return prevColumns.map(col => {
@@ -120,9 +121,11 @@ const KanbanBoard = () => {
             };
           }
           if (col.id === overColumnId) {
+            const newItems = [...overColumn.items];
+            newItems.splice(overItemIndex >= 0 ? overItemIndex : newItems.length, 0, item);
             return {
               ...col,
-              items: [...col.items, item]
+              items: newItems
             };
           }
           return col;
@@ -150,7 +153,7 @@ const KanbanBoard = () => {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
