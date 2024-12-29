@@ -12,6 +12,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting PDF processing...');
+    
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,10 +26,18 @@ serve(async (req) => {
       throw new Error('No PDF URL provided')
     }
 
+    console.log('Processing PDF from URL:', pdfUrl);
+
     // Download the PDF content
     const response = await fetch(pdfUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch PDF: ${response.statusText}`)
+    }
+    
     const pdfBuffer = await response.arrayBuffer()
     const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)))
+
+    console.log('PDF downloaded and converted to base64');
 
     // Use OpenAI to extract information
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -37,36 +47,36 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: `You are an expert at extracting information from purchase invoices (Facturas de Compra). 
-            Extract and format the following information in a clear, structured way:
+            content: `Eres un experto en extraer información de Facturas de Compra.
+            Extrae y formatea la siguiente información de manera clara y estructurada:
 
-            Header:
+            HEADER:
             - Fecha
             - Número de orden de compra
             - Proveedor (nombre y CUIT)
             - Cliente (nombre y CUIT)
             - Dirección de entrega
 
-            Body:
-            - Código (if any)
+            DETALLE:
+            - Código (si existe)
             - Cantidad
             - Descripción
             - Valor unitario
 
-            Also calculate and include:
-            - Total cantidad
-            - Total valor`
+            TOTALES:
+            - Suma total de cantidades
+            - Suma total de valores`
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Please extract the information from this invoice PDF"
+                text: "Por favor extrae la información de esta Factura de Compra"
               },
               {
                 type: "image_url",
@@ -81,8 +91,18 @@ serve(async (req) => {
       }),
     })
 
+    if (!openAIResponse.ok) {
+      const errorData = await openAIResponse.text();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
+    }
+
     const data = await openAIResponse.json()
+    console.log('OpenAI response:', data);
+    
     const extractedInfo = data.choices[0].message.content
+
+    console.log('Extracted information:', extractedInfo);
 
     // Update the kanban item with the extracted information
     const { error: updateError } = await supabase
@@ -92,7 +112,12 @@ serve(async (req) => {
       })
       .eq('source_info', pdfUrl)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Error updating item:', updateError);
+      throw updateError;
+    }
+
+    console.log('Successfully updated kanban item with extracted information');
 
     return new Response(
       JSON.stringify({ 
