@@ -10,6 +10,9 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragStartEvent,
+  DragEndEvent,
+  UniqueIdentifier,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -66,7 +69,7 @@ const initialColumns = [
 
 const Index = () => {
   const [columns, setColumns] = useState(initialColumns);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -75,11 +78,11 @@ const Index = () => {
     })
   );
 
-  const handleDragStart = (event: { active: { id: string } }) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event: { active: { id: string }; over: { id: string } | null }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over) {
@@ -87,8 +90,8 @@ const Index = () => {
       return;
     }
 
-    const activeColumnId = active.id.split('-')[0];
-    const overColumnId = over.id.split('-')[0];
+    const activeColumnId = String(active.id).split('-')[0];
+    const overColumnId = String(over.id).split('-')[0];
 
     if (activeColumnId !== overColumnId) {
       // Move between columns
@@ -98,7 +101,7 @@ const Index = () => {
 
         if (!activeColumn || !overColumn) return prevColumns;
 
-        const activeItemIndex = parseInt(active.id.split('-')[1]);
+        const activeItemIndex = parseInt(String(active.id).split('-')[1]);
         const item = activeColumn.items[activeItemIndex];
 
         const updatedColumns = prevColumns.map(col => {
@@ -122,8 +125,8 @@ const Index = () => {
     } else {
       // Reorder within column
       const columnIndex = columns.findIndex(col => col.id === activeColumnId);
-      const itemIndex = parseInt(active.id.split('-')[1]);
-      const overItemIndex = parseInt(over.id.split('-')[1]);
+      const itemIndex = parseInt(String(active.id).split('-')[1]);
+      const overItemIndex = parseInt(String(over.id).split('-')[1]);
 
       setColumns(prevColumns => {
         const column = prevColumns[columnIndex];
