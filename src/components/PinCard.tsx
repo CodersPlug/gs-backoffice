@@ -39,8 +39,9 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
+    opacity: isDragging ? 0 : 1, // Changed from 0.3 to 0 to completely hide the original
     cursor: 'move',
+    display: isDragging ? 'none' : 'block', // Added to completely remove from layout while dragging
   };
 
   return (
