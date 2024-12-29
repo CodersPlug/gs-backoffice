@@ -29,9 +29,12 @@ const PinCardContent = ({
   sourceInfo,
   image
 }: PinCardContentProps) => {
+  // Only show image preview if there's an actual attachment (image or PDF snapshot)
+  const hasAttachment = Boolean(image || (sourceInfo && isImageUrl(sourceInfo)));
+
   return (
     <div className="flex-1 space-y-3">
-      {(image || sourceInfo) && (
+      {hasAttachment && (
         <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden">
           <img
             src={image || sourceInfo}
