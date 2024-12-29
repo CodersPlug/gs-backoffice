@@ -8,11 +8,17 @@ import {
 } from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DraggablePin } from "@/types/kanban";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
-interface PinCardProps extends DraggablePin {}
+interface PinCardProps {
+  image: string;
+  title: string;
+  description: string;
+  author: string;
+  id: UniqueIdentifier;
+}
 
-const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
+const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const {
@@ -64,8 +70,7 @@ const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-dark-border">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-dark-foreground/60">{author}</span>
+            <div className="flex items-center justify-end">
               <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
             </div>
           </div>
