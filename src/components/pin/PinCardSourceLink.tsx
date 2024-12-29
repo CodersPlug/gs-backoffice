@@ -13,7 +13,7 @@ const PinCardSourceLink = ({ sourceInfo }: PinCardSourceLinkProps) => {
   return (
     <button
       onClick={() => handleLinkClick(sourceInfo)}
-      className="flex items-center gap-1 hover:text-dark-accent transition-colors cursor-pointer"
+      className="flex items-center gap-1 hover:text-dark-accent transition-colors cursor-pointer text-sm text-gray-600 dark:text-dark-foreground/80"
     >
       <Link2 className="w-3 h-3" />
       <span className="line-clamp-1 underline">{shortenUrl(sourceInfo)}</span>
