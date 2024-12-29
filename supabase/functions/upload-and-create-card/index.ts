@@ -16,7 +16,7 @@ serve(async (req) => {
     const file = formData.get('file')
 
     if (!file) {
-      throw new Error('No se subió ningún archivo')
+      throw new Error('No file uploaded')
     }
 
     // Initialize Supabase client
@@ -42,6 +42,30 @@ serve(async (req) => {
     const { data: { publicUrl } } = supabase.storage
       .from('uploads')
       .getPublicUrl(filePath)
+
+    let thumbnailUrl = null
+
+    // If the file is a PDF, generate a snapshot
+    if (fileExt.toLowerCase() === 'pdf') {
+      try {
+        const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-pdf`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+          },
+          body: JSON.stringify({ pdfUrl: publicUrl }),
+        })
+
+        if (!response.ok) throw new Error('Failed to process PDF')
+        
+        const { snapshotUrl } = await response.json()
+        thumbnailUrl = snapshotUrl
+      } catch (error) {
+        console.error('Error processing PDF:', error)
+        // Continue without thumbnail if PDF processing fails
+      }
+    }
 
     // Get the "Para Hacer" column
     const { data: columns, error: columnsError } = await supabase
@@ -74,7 +98,7 @@ serve(async (req) => {
         description: `Archivo subido a través del Asistente AI`,
         content: `[Ver archivo](${publicUrl})`,
         order_index: newOrderIndex,
-        source_info: publicUrl
+        source_info: thumbnailUrl || publicUrl
       })
       .select()
       .single()
