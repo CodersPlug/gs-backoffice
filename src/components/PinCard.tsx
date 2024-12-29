@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import PinCardContent from "./pin/PinCardContent";
-import PinCardFooter from "./pin/PinCardFooter";
+import { PinCardFooter } from "./pin/PinCardFooter";
 import PinCardDialog from "./pin/PinCardDialog";
 import PinCardDragWrapper from "./pin/PinCardDragWrapper";
 
@@ -60,7 +60,7 @@ const PinCard = ({
             sourceInfo={sourceInfo}
           />
           <PinCardFooter 
-            onOpenDialog={() => setIsOpen(true)} 
+            onMaximize={() => setIsOpen(true)} 
             id={id.toString()}
           />
         </div>
