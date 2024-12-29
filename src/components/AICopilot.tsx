@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import ChatMessageList from "./chat/ChatMessageList";
 import ChatInput from "./chat/ChatInput";
+import { useChat } from "@/hooks/useChat";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 interface AICopilotProps {
   isOpen: boolean;
@@ -12,11 +12,13 @@ interface AICopilotProps {
 
 const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
   const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversation, setConversation] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
-  const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { conversation, isLoading: isChatLoading, sendMessage, addSystemMessage } = useChat();
+  const { isLoading: isFileLoading, handleFileUpload } = useFileUpload((fileName) => {
+    addSystemMessage(`Archivo "${fileName}" subido exitosamente. Se creó una nueva tarjeta en la columna "Para Hacer".`);
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -29,66 +31,15 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
-
-    setIsLoading(true);
-    const userMessage = message;
+    const currentMessage = message;
     setMessage("");
-    setConversation(prev => [...prev, { role: 'user', content: userMessage }]);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: userMessage },
-      });
-
-      if (error) throw error;
-
-      setConversation(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo obtener la respuesta del AI. Por favor, intentá de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await sendMessage(currentMessage);
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('upload-and-create-card', {
-        body: formData,
-      });
-
-      if (error) throw error;
-
-      setConversation(prev => [
-        ...prev,
-        { role: 'user', content: `Subí el archivo: ${file.name}` },
-        { role: 'assistant', content: 'Archivo subido exitosamente. Se creó una nueva tarjeta en la columna "Para Hacer".' }
-      ]);
-
-      toast({
-        title: "Éxito",
-        description: "Archivo subido y tarjeta creada exitosamente.",
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo subir el archivo. Por favor, intentá de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    if (file) {
+      await handleFileUpload(file);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -106,7 +57,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
           <ChatInput
             ref={inputRef}
             message={message}
-            isLoading={isLoading}
+            isLoading={isChatLoading || isFileLoading}
             onChange={setMessage}
             onSend={handleSendMessage}
             onFileClick={() => fileInputRef.current?.click()}
@@ -115,7 +66,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
             type="file"
             ref={fileInputRef}
             className="hidden"
-            onChange={handleFileUpload}
+            onChange={handleFileChange}
             accept="*/*"
           />
         </div>
