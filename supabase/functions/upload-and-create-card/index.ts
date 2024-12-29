@@ -48,6 +48,7 @@ serve(async (req) => {
     // If the file is a PDF, generate a snapshot
     if (fileExt.toLowerCase() === 'pdf') {
       try {
+        console.log('Generating PDF snapshot...')
         const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-pdf`, {
           method: 'POST',
           headers: {
@@ -57,9 +58,13 @@ serve(async (req) => {
           body: JSON.stringify({ pdfUrl: publicUrl }),
         })
 
-        if (!response.ok) throw new Error('Failed to process PDF')
+        if (!response.ok) {
+          console.error('Failed to process PDF:', await response.text())
+          throw new Error('Failed to process PDF')
+        }
         
         const { snapshotUrl } = await response.json()
+        console.log('Generated snapshot URL:', snapshotUrl)
         imageUrl = snapshotUrl
       } catch (error) {
         console.error('Error processing PDF:', error)
