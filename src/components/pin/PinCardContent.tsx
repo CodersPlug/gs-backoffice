@@ -29,7 +29,7 @@ const PinCardContent = ({
 }: PinCardContentProps) => {
   return (
     <div className="flex-1 space-y-3">
-      {sourceInfo && isImageUrl(sourceInfo) && (
+      {sourceInfo && (
         <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden">
           <img
             src={sourceInfo}
