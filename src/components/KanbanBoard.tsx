@@ -15,12 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Column } from "@/types/kanban";
 
 const KanbanBoard = () => {
-  const [initialColumns, setInitialColumns] = useState<Column[]>([
-    { id: 'blocked', title: 'Bloqueado', items: [] },
-    { id: 'todo', title: 'Para Hacer', items: [] },
-    { id: 'doing', title: 'Haciendo', items: [] },
-    { id: 'done', title: 'Hecho', items: [] }
-  ]);
+  const [initialColumns, setInitialColumns] = useState<Column[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,15 +39,18 @@ const KanbanBoard = () => {
         return;
       }
 
+      // Create columns with their respective items
       const columnsWithItems = columns.map(column => ({
         id: column.id,
         title: column.title,
-        items: items.filter(item => item.column_id === column.id).map(item => ({
-          image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-          title: item.title,
-          description: item.description,
-          author: item.author
-        }))
+        items: items
+          .filter(item => item.column_id === column.id)
+          .map(item => ({
+            image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+            title: item.title,
+            description: item.description,
+            author: item.author || ''
+          }))
       }));
 
       setInitialColumns(columnsWithItems);
