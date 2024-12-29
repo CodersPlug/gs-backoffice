@@ -32,8 +32,18 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
     }
 
-    const pdfText = await pdfResponse.text();
-    console.log('PDF text content retrieved');
+    // Get the raw text and sanitize it
+    const rawText = await pdfResponse.text();
+    console.log('Raw text retrieved, sanitizing...');
+    
+    // Sanitize text by removing problematic characters and normalizing whitespace
+    const pdfText = rawText
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+      .replace(/\\./g, ' ') // Replace escape sequences with space
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+
+    console.log('Text sanitized successfully');
 
     // Simple regex patterns for common invoice fields
     const patterns = {
@@ -49,7 +59,6 @@ serve(async (req) => {
       date: pdfText.match(patterns.date)?.[1] || 'Not found',
       total: pdfText.match(patterns.total)?.[1] || 'Not found',
       supplier: pdfText.match(patterns.supplier)?.[1] || 'Not found',
-      rawText: pdfText // Include raw text for debugging
     };
 
     console.log('Extracted data:', extractedData);
@@ -67,7 +76,7 @@ Supplier: ${extractedData.supplier}
       .from('kanban_items')
       .update({ 
         description: formattedInfo,
-        content: JSON.stringify(extractedData, null, 2)
+        content: JSON.stringify(extractedData)
       })
       .eq('source_info', pdfUrl);
 
