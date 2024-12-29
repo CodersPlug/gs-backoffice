@@ -4,8 +4,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ChatMessageList from "./chat/ChatMessageList";
 import ChatInput from "./chat/ChatInput";
-import { Button } from "./ui/button";
-import { Upload } from "lucide-react";
 
 interface AICopilotProps {
   isOpen: boolean;
@@ -99,19 +97,9 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-[400px] p-0">
-        <SheetHeader className="relative p-4 border-b">
-          <SheetTitle className="flex items-center justify-between">
-            <span>Asistente AI</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <Upload className="h-4 w-4" />
-            </Button>
-          </SheetTitle>
+      <SheetContent side="right" className="w-full sm:w-[400px] p-0 bg-[#343541]">
+        <SheetHeader className="relative p-4 border-b border-gray-600/50">
+          <SheetTitle className="text-white">Asistente AI</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col h-[calc(100vh-4rem)]">
           <ChatMessageList messages={conversation} />
@@ -121,6 +109,7 @@ const AICopilot = ({ isOpen, onClose }: AICopilotProps) => {
             isLoading={isLoading}
             onChange={setMessage}
             onSend={handleSendMessage}
+            onFileClick={() => fileInputRef.current?.click()}
           />
           <input
             type="file"
