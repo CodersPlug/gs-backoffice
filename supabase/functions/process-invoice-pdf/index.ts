@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { parse } from 'https://esm.sh/pdf-parse@1.1.1';
+import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/+esm';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,19 +27,30 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch the PDF content as an ArrayBuffer
+    // Fetch the PDF content
     const pdfResponse = await fetch(pdfUrl);
     if (!pdfResponse.ok) {
       throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
     }
 
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-    console.log('PDF fetched successfully, extracting text...');
+    const pdfData = await pdfResponse.arrayBuffer();
+    console.log('PDF fetched successfully, loading document...');
 
-    // Extract text from PDF
-    const data = await parse(new Uint8Array(pdfBuffer));
-    const extractedText = data.text;
-    console.log('Extracted text:', extractedText);
+    // Load the PDF document
+    const loadingTask = pdfjs.getDocument({ data: pdfData });
+    const pdfDocument = await loadingTask.promise;
+    console.log('PDF document loaded, extracting text...');
+
+    // Extract text from all pages
+    let extractedText = '';
+    for (let i = 1; i <= pdfDocument.numPages; i++) {
+      const page = await pdfDocument.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      extractedText += pageText + '\n';
+    }
+
+    console.log('Text extracted successfully');
 
     // Get the filename from the URL
     const filename = pdfUrl.split('/').pop() || 'document.pdf';
