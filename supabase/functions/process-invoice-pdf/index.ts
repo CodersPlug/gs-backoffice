@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/+esm';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,43 +27,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch the PDF content
-    const pdfResponse = await fetch(pdfUrl);
-    if (!pdfResponse.ok) {
-      throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
-    }
-
-    // Convert PDF to ArrayBuffer
-    const pdfData = await pdfResponse.arrayBuffer();
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-    const pdf = await loadingTask.promise;
-    
-    // Get the first page
-    const page = await pdf.getPage(1);
-    
-    // Render the page to a canvas
-    const viewport = page.getViewport({ scale: 1.5 });
-    const canvas = new OffscreenCanvas(viewport.width, viewport.height);
-    const context = canvas.getContext('2d');
-    
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
-    
-    // Convert canvas to blob
-    const blob = await canvas.convertToBlob({ type: 'image/png' });
-    
-    // Convert blob to base64
-    const reader = new FileReader();
-    const base64Image = await new Promise((resolve) => {
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(blob);
-    });
-
-    // Call OpenAI API with the converted image
+    // Call OpenAI API directly with the PDF URL
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -83,13 +46,7 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: base64Image
-                }
+                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items. The PDF is available at: " + pdfUrl
               }
             ]
           }
