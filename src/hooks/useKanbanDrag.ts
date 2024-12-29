@@ -1,13 +1,24 @@
+import { useState, useEffect } from "react";
 import { DragStartEvent, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { useState } from "react";
 import { Column, Pin } from "@/types/kanban";
-import { useKanbanState } from "./useKanbanState";
+
+const STORAGE_KEY = 'kanban-board-state';
 
 export const useKanbanDrag = (initialColumns: Column[]) => {
-  const { columns, updateColumns } = useKanbanState(initialColumns);
+  // Load initial state from localStorage or use provided initialColumns
+  const [columns, setColumns] = useState<Column[]>(() => {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    return savedState ? JSON.parse(savedState) : initialColumns;
+  });
+  
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activePinData, setActivePinData] = useState<Pin | null>(null);
+
+  // Save to localStorage whenever columns change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(columns));
+  }, [columns]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -31,74 +42,73 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     }
 
     const activeColumnId = String(active.id).split('-')[0];
+    const overColumnId = String(over.id).split('-')[0];
     const activeItemIndex = parseInt(String(active.id).split('-')[1]);
-
+    
+    // Handle dropping on a column (empty column case)
     if (!String(over.id).includes('-')) {
-      handleDropOnColumn(activeColumnId, activeItemIndex, String(over.id));
+      setColumns(prevColumns => {
+        const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
+        const destinationColumnIndex = prevColumns.findIndex(col => col.id === over.id);
+        
+        const newColumns = [...prevColumns];
+        const sourceItems = [...newColumns[sourceColumnIndex].items];
+        const [movedItem] = sourceItems.splice(activeItemIndex, 1);
+        
+        newColumns[sourceColumnIndex] = {
+          ...newColumns[sourceColumnIndex],
+          items: sourceItems
+        };
+        
+        newColumns[destinationColumnIndex] = {
+          ...newColumns[destinationColumnIndex],
+          items: [...newColumns[destinationColumnIndex].items, movedItem]
+        };
+
+        return newColumns;
+      });
     } else {
-      handleDropOnItem(activeColumnId, activeItemIndex, String(over.id));
+      // Handle dropping on an item
+      const overItemIndex = parseInt(String(over.id).split('-')[1]);
+      
+      setColumns(prevColumns => {
+        if (activeColumnId === overColumnId) {
+          // Same column drag
+          const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
+          const column = prevColumns[columnIndex];
+          const items = arrayMove(column.items, activeItemIndex, overItemIndex);
+
+          return prevColumns.map((col, index) =>
+            index === columnIndex ? { ...col, items } : col
+          );
+        } else {
+          // Different column drag
+          const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
+          const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
+          
+          const newColumns = [...prevColumns];
+          const sourceItems = [...newColumns[sourceColumnIndex].items];
+          const [movedItem] = sourceItems.splice(activeItemIndex, 1);
+          const destinationItems = [...newColumns[destinationColumnIndex].items];
+          
+          destinationItems.splice(overItemIndex, 0, movedItem);
+
+          newColumns[sourceColumnIndex] = {
+            ...newColumns[sourceColumnIndex],
+            items: sourceItems
+          };
+          newColumns[destinationColumnIndex] = {
+            ...newColumns[destinationColumnIndex],
+            items: destinationItems
+          };
+
+          return newColumns;
+        }
+      });
     }
 
     setActiveId(null);
     setActivePinData(null);
-  };
-
-  const handleDropOnColumn = (sourceColumnId: string, sourceItemIndex: number, targetColumnId: string) => {
-    const sourceColumn = columns.find(col => col.id === sourceColumnId);
-    const targetColumn = columns.find(col => col.id === targetColumnId);
-    
-    if (sourceColumn && targetColumn) {
-      const [movedItem] = sourceColumn.items.splice(sourceItemIndex, 1);
-      const newColumns = columns.map(col => {
-        if (col.id === sourceColumnId) {
-          return { ...col, items: sourceColumn.items };
-        }
-        if (col.id === targetColumnId) {
-          return { ...col, items: [...col.items, movedItem] };
-        }
-        return col;
-      });
-      updateColumns(newColumns);
-    }
-  };
-
-  const handleDropOnItem = (sourceColumnId: string, sourceItemIndex: number, overId: string) => {
-    const overColumnId = overId.split('-')[0];
-    const overItemIndex = parseInt(overId.split('-')[1]);
-
-    if (sourceColumnId === overColumnId) {
-      // Same column drag
-      const columnIndex = columns.findIndex(col => col.id === sourceColumnId);
-      const column = columns[columnIndex];
-      const items = arrayMove(column.items, sourceItemIndex, overItemIndex);
-      
-      const newColumns = columns.map((col, index) =>
-        index === columnIndex ? { ...col, items } : col
-      );
-      updateColumns(newColumns);
-    } else {
-      // Different column drag
-      const sourceColumnIndex = columns.findIndex(col => col.id === sourceColumnId);
-      const targetColumnIndex = columns.findIndex(col => col.id === overColumnId);
-      
-      const newColumns = [...columns];
-      const sourceItems = [...newColumns[sourceColumnIndex].items];
-      const [movedItem] = sourceItems.splice(sourceItemIndex, 1);
-      const targetItems = [...newColumns[targetColumnIndex].items];
-      
-      targetItems.splice(overItemIndex, 0, movedItem);
-      
-      newColumns[sourceColumnIndex] = {
-        ...newColumns[sourceColumnIndex],
-        items: sourceItems
-      };
-      newColumns[targetColumnIndex] = {
-        ...newColumns[targetColumnIndex],
-        items: targetItems
-      };
-      
-      updateColumns(newColumns);
-    }
   };
 
   return {

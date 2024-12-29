@@ -1,13 +1,24 @@
 import { useState } from "react";
-import { FileText, Eye } from "lucide-react";
+import { MessageCircle, FileText, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Pin } from "@/types/kanban";
-import PinCardDialog from "./PinCardDialog";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
-type PinCardProps = Pin;
+interface PinCardProps {
+  image: string;
+  title: string;
+  description: string;
+  author: string;
+  id: UniqueIdentifier;
+}
 
-const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
+const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const {
@@ -59,21 +70,36 @@ const PinCard = ({ image, title, description, id, author }: PinCardProps) => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-dark-border">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500 dark:text-dark-foreground/60">{author}</span>
+            <div className="flex items-center justify-end">
               <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
             </div>
           </div>
         </div>
       </div>
 
-      <PinCardDialog
-        {...{ id, image, title, description, author }}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        order_index={0}
-        column_id={null}
-      />
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[600px] animate-in zoom-in-90 duration-700 ease-in-out dark:bg-dark-background">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold dark:text-dark-foreground">{title}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="space-y-4">
+              <p className="text-gray-600 dark:text-dark-foreground/80">{description}</p>
+              <div className="flex justify-end">
+                <button 
+                  className="p-2 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4 text-gray-500 dark:text-dark-foreground/60" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
