@@ -7,7 +7,6 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useEffect, useState } from "react";
 import KanbanColumn from "./KanbanColumn";
 import DragOverlayWrapper from "./DragOverlayWrapper";
 import { useKanbanDrag } from "@/hooks/useKanbanDrag";
@@ -19,6 +18,7 @@ const KanbanBoard = () => {
   const fetchData = async () => {
     console.log("Fetching kanban data...");
     
+    // Check if we have the required columns
     const { data: columns, error: columnsError } = await supabase
       .from('kanban_columns')
       .select('*')
@@ -27,6 +27,31 @@ const KanbanBoard = () => {
     if (columnsError) {
       console.error('Error fetching columns:', columnsError);
       throw columnsError;
+    }
+
+    // If no columns exist, create them
+    if (!columns || columns.length === 0) {
+      const defaultColumns = [
+        { title: 'Bloqueado', order_index: 0 },
+        { title: 'Para Hacer', order_index: 1 },
+        { title: 'Haciendo', order_index: 2 },
+        { title: 'Hecho', order_index: 3 }
+      ];
+
+      for (const column of defaultColumns) {
+        await supabase
+          .from('kanban_columns')
+          .insert(column);
+      }
+
+      // Fetch the newly created columns
+      const { data: newColumns, error: newColumnsError } = await supabase
+        .from('kanban_columns')
+        .select('*')
+        .order('order_index');
+
+      if (newColumnsError) throw newColumnsError;
+      columns = newColumns;
     }
 
     const { data: items, error: itemsError } = await supabase
