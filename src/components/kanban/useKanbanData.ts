@@ -62,7 +62,8 @@ export const useKanbanData = () => {
           .filter(item => item.column_id === column.id)
           .map(item => ({
             id: item.id,
-            image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+            // Only include image if there's source_info
+            image: item.source_info || '',
             title: item.title,
             description: item.description || '',
             author: item.author || '',
