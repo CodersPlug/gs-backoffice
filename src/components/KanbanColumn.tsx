@@ -1,4 +1,5 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import PinCard from "./PinCard";
 import { Column } from "@/types/kanban";
 
@@ -7,8 +8,15 @@ interface KanbanColumnProps {
 }
 
 const KanbanColumn = ({ column }: KanbanColumnProps) => {
+  const { setNodeRef } = useDroppable({
+    id: column.id
+  });
+
   return (
-    <div className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4 transition-colors duration-200 hover:bg-dark-muted/60">
+    <div 
+      ref={setNodeRef}
+      className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4 transition-colors duration-200 hover:bg-dark-muted/60"
+    >
       <h2 className="text-lg font-semibold mb-4 text-dark-foreground">
         {column.title}
       </h2>
