@@ -34,7 +34,12 @@ serve(async (req) => {
     const pdfBlob = await response.blob();
     const base64Pdf = await new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // Ensure we're only sending the base64 data without the data URL prefix
+        const base64Data = base64String.split(',')[1] || base64String;
+        resolve(`data:${pdfBlob.type};base64,${base64Data}`);
+      };
       reader.readAsDataURL(pdfBlob);
     });
 
@@ -82,12 +87,12 @@ serve(async (req) => {
 
     if (!openAIResponse.ok) {
       const errorData = await openAIResponse.text();
-      console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API error response:', errorData);
       throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
     }
 
     const data = await openAIResponse.json();
-    console.log('OpenAI response received');
+    console.log('OpenAI response received:', data);
     
     if (!data.choices?.[0]?.message?.content) {
       throw new Error('Invalid response from OpenAI');
