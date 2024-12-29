@@ -66,16 +66,16 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
       return;
     }
 
+    const movedItem = sourceColumn.items[activeItemIndex];
+
     // Handle dropping on a column (empty column case)
     if (!String(over.id).includes('-')) {
       const destinationColumnId = String(over.id);
       const destinationColumn = columns.find(col => col.id === destinationColumnId);
       
-      if (sourceColumn && destinationColumn) {
-        const [movedItem] = sourceColumn.items.splice(activeItemIndex, 1);
-        const newOrderIndex = destinationColumn.items.length;
-        
+      if (destinationColumn) {
         try {
+          const newOrderIndex = destinationColumn.items.length;
           await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
           
           setColumns(prevColumns => {
@@ -84,11 +84,13 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
             const destinationColumnIndex = newColumns.findIndex(col => col.id === destinationColumnId);
             
             if (sourceColumnIndex !== -1 && destinationColumnIndex !== -1) {
+              // Remove from source
               newColumns[sourceColumnIndex] = {
                 ...sourceColumn,
-                items: sourceColumn.items
+                items: sourceColumn.items.filter((_, index) => index !== activeItemIndex)
               };
               
+              // Add to destination
               newColumns[destinationColumnIndex] = {
                 ...destinationColumn,
                 items: [...destinationColumn.items, movedItem]
@@ -123,8 +125,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
           const columnIndex = columns.findIndex(col => col.id === activeColumnId);
           if (columnIndex === -1) return;
 
-          const column = columns[columnIndex];
-          const items = arrayMove(column.items, activeItemIndex, overItemIndex);
+          const items = arrayMove(sourceColumn.items, activeItemIndex, overItemIndex);
           
           // Update order indexes in database
           await Promise.all(items.map((item, index) => 
@@ -145,9 +146,8 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
 
           const newColumns = [...columns];
           const sourceItems = [...newColumns[sourceColumnIndex].items];
-          const [movedItem] = sourceItems.splice(activeItemIndex, 1);
+          sourceItems.splice(activeItemIndex, 1);
           const destinationItems = [...newColumns[destinationColumnIndex].items];
-          
           destinationItems.splice(overItemIndex, 0, movedItem);
           
           // Update order indexes in database
