@@ -30,10 +30,10 @@ const PinCardFooter = ({ onOpenDialog, id }: PinCardFooterProps) => {
     <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
       <div className="flex items-center justify-between">
         <button 
-          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer text-red-500 hover:text-red-600"
+          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
           onClick={handleDelete}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
         </button>
         <button 
           className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
