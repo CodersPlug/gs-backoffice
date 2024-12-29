@@ -30,8 +30,13 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
     
-    const pdfBuffer = await response.arrayBuffer();
-    const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
+    // Stream the PDF content instead of loading it all into memory
+    const pdfStream = await response.blob();
+    const base64Pdf = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(pdfStream);
+    });
 
     console.log('PDF downloaded and converted to base64');
 
@@ -41,7 +46,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Use OpenAI to extract information
+    // Use OpenAI to extract information with a more focused prompt
+    console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -53,32 +59,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Eres un experto en extraer información de Facturas de Compra.
-            Extrae y formatea la siguiente información de manera clara y estructurada:
-
-            HEADER:
-            - Fecha
-            - Número de orden de compra
-            - Proveedor (nombre y CUIT)
-            - Cliente (nombre y CUIT)
-            - Dirección de entrega
-
-            DETALLE:
-            - Código (si existe)
-            - Cantidad
-            - Descripción
-            - Valor unitario
-
-            TOTALES:
-            - Suma total de cantidades
-            - Suma total de valores`
+            content: "Extract key information from invoices in a clear format. Focus on essential details only."
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Por favor extrae la información de esta Factura de Compra"
+                text: "Extract the following information from this invoice: date, invoice number, total amount, supplier details, and line items."
               },
               {
                 type: "image_url",
@@ -89,7 +77,7 @@ serve(async (req) => {
             ]
           }
         ],
-        max_tokens: 1000,
+        max_tokens: 500,
       }),
     });
 
@@ -100,10 +88,13 @@ serve(async (req) => {
     }
 
     const data = await openAIResponse.json();
-    console.log('OpenAI response:', data);
+    console.log('OpenAI response received');
     
-    const extractedInfo = data.choices[0].message.content;
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI');
+    }
 
+    const extractedInfo = data.choices[0].message.content;
     console.log('Extracted information:', extractedInfo);
 
     // Update the kanban item with the extracted information
