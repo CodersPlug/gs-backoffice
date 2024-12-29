@@ -13,59 +13,64 @@ import DragOverlayWrapper from "./DragOverlayWrapper";
 import { useKanbanDrag } from "@/hooks/useKanbanDrag";
 import { supabase } from "@/integrations/supabase/client";
 import { Column } from "@/types/kanban";
+import { useQuery } from "@tanstack/react-query";
 
 const KanbanBoard = () => {
-  const [initialColumns, setInitialColumns] = useState<Column[]>([]);
+  const fetchData = async () => {
+    console.log("Fetching kanban data...");
+    
+    const { data: columns, error: columnsError } = await supabase
+      .from('kanban_columns')
+      .select('*')
+      .order('order_index');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: columns, error: columnsError } = await supabase
-        .from('kanban_columns')
-        .select('*')
-        .order('order_index');
+    if (columnsError) {
+      console.error('Error fetching columns:', columnsError);
+      throw columnsError;
+    }
 
-      if (columnsError) {
-        console.error('Error fetching columns:', columnsError);
-        return;
-      }
+    const { data: items, error: itemsError } = await supabase
+      .from('kanban_items')
+      .select('*')
+      .order('order_index');
 
-      const { data: items, error: itemsError } = await supabase
-        .from('kanban_items')
-        .select('*')
-        .order('order_index');
+    if (itemsError) {
+      console.error('Error fetching items:', itemsError);
+      throw itemsError;
+    }
 
-      if (itemsError) {
-        console.error('Error fetching items:', itemsError);
-        return;
-      }
+    console.log("Fetched columns:", columns);
+    console.log("Fetched items:", items);
 
-      // Create columns with their respective items
-      const columnsWithItems = columns.map(column => ({
-        id: column.id,
-        title: column.title,
-        items: items
-          .filter(item => item.column_id === column.id)
-          .map(item => ({
-            image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-            title: item.title,
-            description: item.description,
-            author: item.author || ''
-          }))
-      }));
+    // Create columns with their respective items
+    const columnsWithItems = columns.map(column => ({
+      id: column.id,
+      title: column.title,
+      items: items
+        .filter(item => item.column_id === column.id)
+        .map(item => ({
+          image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+          title: item.title,
+          description: item.description || '',
+          author: item.author || ''
+        }))
+    }));
 
-      setInitialColumns(columnsWithItems);
-    };
+    console.log("Processed columns with items:", columnsWithItems);
+    return columnsWithItems;
+  };
 
-    fetchData();
-  }, []);
+  const { data: columns = [], isLoading, error } = useQuery({
+    queryKey: ['kanban'],
+    queryFn: fetchData
+  });
 
   const {
-    columns,
     activeId,
     activePinData,
     handleDragStart,
     handleDragEnd
-  } = useKanbanDrag(initialColumns);
+  } = useKanbanDrag(columns);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -77,6 +82,18 @@ const KanbanBoard = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-full">
+      <p className="text-dark-foreground">Loading kanban board...</p>
+    </div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-full">
+      <p className="text-red-500">Error loading kanban board. Please try again later.</p>
+    </div>;
+  }
 
   return (
     <DndContext
