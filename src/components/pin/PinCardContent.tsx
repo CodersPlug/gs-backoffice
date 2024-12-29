@@ -56,7 +56,6 @@ const PinCardContent = ({
       <MetaInfo 
         dueDate={dueDate}
         assignedTo={assignedTo}
-        sourceInfo={sourceInfo}
       />
 
       <ProgressBar progress={progress} />
