@@ -35,8 +35,9 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: 1,
     cursor: 'move',
+    opacity: 1,
+    zIndex: isDragging ? 50 : 'auto',
   };
 
   const handleDialogClose = (e: React.MouseEvent) => {

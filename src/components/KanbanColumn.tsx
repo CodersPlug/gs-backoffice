@@ -21,7 +21,10 @@ const KanbanColumn = ({ column }: KanbanColumnProps) => {
             <div
               key={`${column.id}-${index}`}
               className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                display: 'block'
+              }}
             >
               <PinCard {...pin} id={`${column.id}-${index}`} />
             </div>
