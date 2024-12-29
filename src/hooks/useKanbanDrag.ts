@@ -35,6 +35,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     const overItemIndex = parseInt(String(over.id).split('-')[1]);
 
     if (activeColumnId === overColumnId) {
+      // Same column drag
       setColumns(prevColumns => {
         const columnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const column = prevColumns[columnIndex];
@@ -45,6 +46,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         );
       });
     } else {
+      // Different column drag
       setColumns(prevColumns => {
         const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
         const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
@@ -56,11 +58,9 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
         const destinationItems = [...newColumns[destinationColumnIndex].items];
         
-        destinationItems.splice(
-          overItemIndex >= 0 ? overItemIndex : destinationItems.length,
-          0,
-          movedItem
-        );
+        // Insert at the correct position
+        const insertIndex = overItemIndex >= 0 ? overItemIndex : destinationItems.length;
+        destinationItems.splice(insertIndex, 0, movedItem);
 
         newColumns[sourceColumnIndex] = {
           ...newColumns[sourceColumnIndex],
