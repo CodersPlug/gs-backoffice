@@ -113,16 +113,24 @@ const KanbanBoard = () => {
         const overItemIndex = parseInt(String(over.id).split('-')[1]);
         const item = activeColumn.items[activeItemIndex];
 
-        return prevColumns.map(col => {
+        const updatedColumns = prevColumns.map(col => {
+          // Remove from source column
           if (col.id === activeColumnId) {
             return {
               ...col,
               items: col.items.filter((_, index) => index !== activeItemIndex)
             };
           }
+          // Add to target column
           if (col.id === overColumnId) {
-            const newItems = [...overColumn.items];
-            newItems.splice(overItemIndex >= 0 ? overItemIndex : newItems.length, 0, item);
+            const newItems = [...col.items];
+            // If dropping on an item, insert before it
+            if (overItemIndex >= 0) {
+              newItems.splice(overItemIndex, 0, item);
+            } else {
+              // If dropping on the column itself, append to the end
+              newItems.push(item);
+            }
             return {
               ...col,
               items: newItems
@@ -130,8 +138,11 @@ const KanbanBoard = () => {
           }
           return col;
         });
+
+        return updatedColumns;
       });
     } else {
+      // Handle reordering within the same column
       const columnIndex = columns.findIndex(col => col.id === activeColumnId);
       const itemIndex = parseInt(String(active.id).split('-')[1]);
       const overItemIndex = parseInt(String(over.id).split('-')[1]);
