@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye } from 'lucide-react';
+import { Expand } from 'lucide-react';
 
 interface PinCardFooterProps {
   onOpenDialog: () => void;
@@ -16,7 +16,7 @@ const PinCardFooter = ({ onOpenDialog }: PinCardFooterProps) => {
             onOpenDialog();
           }}
         >
-          <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+          <Expand className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
         </button>
       </div>
     </div>
