@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,22 +32,8 @@ serve(async (req) => {
       throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
     }
 
-    const pdfArrayBuffer = await pdfResponse.arrayBuffer();
-    
-    // Configure PDF.js for Deno environment
-    const pdfjsWorker = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js');
-    globalThis.pdfjsWorker = pdfjsWorker;
-    
-    // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data: pdfArrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    // Get the first page
-    const page = await pdf.getPage(1);
-    
-    // Extract text content
-    const textContent = await page.getTextContent();
-    const text = textContent.items.map((item: any) => item.str).join(' ');
+    const pdfText = await pdfResponse.text();
+    console.log('PDF text content retrieved');
 
     // Simple regex patterns for common invoice fields
     const patterns = {
@@ -60,11 +45,11 @@ serve(async (req) => {
 
     // Extract data using regex
     const extractedData = {
-      invoiceNumber: text.match(patterns.invoiceNumber)?.[1] || 'Not found',
-      date: text.match(patterns.date)?.[1] || 'Not found',
-      total: text.match(patterns.total)?.[1] || 'Not found',
-      supplier: text.match(patterns.supplier)?.[1] || 'Not found',
-      rawText: text // Include raw text for debugging
+      invoiceNumber: pdfText.match(patterns.invoiceNumber)?.[1] || 'Not found',
+      date: pdfText.match(patterns.date)?.[1] || 'Not found',
+      total: pdfText.match(patterns.total)?.[1] || 'Not found',
+      supplier: pdfText.match(patterns.supplier)?.[1] || 'Not found',
+      rawText: pdfText // Include raw text for debugging
     };
 
     console.log('Extracted data:', extractedData);
