@@ -18,7 +18,6 @@ const KanbanBoard = () => {
   const fetchData = async () => {
     console.log("Fetching kanban data...");
     
-    // Check if we have the required columns
     let { data: columns, error: columnsError } = await supabase
       .from('kanban_columns')
       .select('*')
@@ -29,7 +28,6 @@ const KanbanBoard = () => {
       throw columnsError;
     }
 
-    // If no columns exist, create them
     if (!columns || columns.length === 0) {
       const defaultColumns = [
         { title: 'Bloqueado', order_index: 0 },
@@ -44,7 +42,6 @@ const KanbanBoard = () => {
           .insert(column);
       }
 
-      // Fetch the newly created columns
       const { data: newColumns, error: newColumnsError } = await supabase
         .from('kanban_columns')
         .select('*')
@@ -67,13 +64,13 @@ const KanbanBoard = () => {
     console.log("Fetched columns:", columns);
     console.log("Fetched items:", items);
 
-    // Create columns with their respective items
     const columnsWithItems = columns.map(column => ({
       id: column.id,
       title: column.title,
       items: items
         .filter(item => item.column_id === column.id)
         .map(item => ({
+          id: item.id,
           image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
           title: item.title,
           description: item.description || '',

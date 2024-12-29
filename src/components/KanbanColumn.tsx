@@ -21,15 +21,15 @@ const KanbanColumn = ({ column }: KanbanColumnProps) => {
         {column.title}
       </h2>
       <SortableContext
-        items={column.items.map((item, index) => `${column.id}-${index}`)}
+        items={column.items.map(item => item.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-4">
-          {column.items.map((pin, index) => (
+          {column.items.map((pin) => (
             <PinCard 
-              key={`${column.id}-${index}`}
+              key={pin.id}
               {...pin} 
-              id={`${column.id}-${index}`}
+              id={pin.id}
             />
           ))}
         </div>
