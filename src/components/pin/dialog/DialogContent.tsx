@@ -27,6 +27,10 @@ const DialogContent = ({
   attachments = [],
   comments = []
 }: DialogContentProps) => {
+  const shouldShowContent = content && 
+    !content.includes('[Ver archivo]') && 
+    !content.includes('bamdlnybhcqkiihpwdlz.supabase.co');
+
   return (
     <div className="mt-4 space-y-6">
       <div className="space-y-4">
@@ -34,7 +38,7 @@ const DialogContent = ({
           {description}
         </p>
 
-        {content && !content.includes('[Ver archivo]') && (
+        {shouldShowContent && (
           <div className="text-gray-600 dark:text-dark-foreground/80 prose dark:prose-invert">
             {content}
           </div>
