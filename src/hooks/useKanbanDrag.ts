@@ -49,31 +49,32 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
     // If dropping in a different column
     else {
       setColumns(prevColumns => {
-        const sourceColumn = prevColumns.find(col => col.id === activeColumnId);
-        const destinationColumn = prevColumns.find(col => col.id === overColumnId);
+        const sourceColumnIndex = prevColumns.findIndex(col => col.id === activeColumnId);
+        const destinationColumnIndex = prevColumns.findIndex(col => col.id === overColumnId);
+        
+        if (sourceColumnIndex === -1 || destinationColumnIndex === -1) return prevColumns;
 
-        if (!sourceColumn || !destinationColumn) return prevColumns;
-
-        const sourceItems = [...sourceColumn.items];
+        const newColumns = [...prevColumns];
+        const sourceItems = [...newColumns[sourceColumnIndex].items];
         const [movedItem] = sourceItems.splice(activeItemIndex, 1);
-        const destinationItems = [...destinationColumn.items];
+        const destinationItems = [...newColumns[destinationColumnIndex].items];
 
-        // Insert at the correct position in the destination column
-        if (Number.isInteger(overItemIndex)) {
-          destinationItems.splice(overItemIndex, 0, movedItem);
+        // Calculate the correct insertion index
+        let insertIndex = overItemIndex;
+        if (destinationColumnIndex < sourceColumnIndex) {
+          // When moving left, insert after the target item
+          insertIndex = (insertIndex === undefined || insertIndex < 0) ? destinationItems.length : insertIndex + 1;
         } else {
-          destinationItems.push(movedItem);
+          // When moving right, insert before the target item
+          insertIndex = (insertIndex === undefined || insertIndex < 0) ? destinationItems.length : insertIndex;
         }
 
-        return prevColumns.map(col => {
-          if (col.id === activeColumnId) {
-            return { ...col, items: sourceItems };
-          }
-          if (col.id === overColumnId) {
-            return { ...col, items: destinationItems };
-          }
-          return col;
-        });
+        destinationItems.splice(insertIndex, 0, movedItem);
+
+        newColumns[sourceColumnIndex] = { ...newColumns[sourceColumnIndex], items: sourceItems };
+        newColumns[destinationColumnIndex] = { ...newColumns[destinationColumnIndex], items: destinationItems };
+
+        return newColumns;
       });
     }
 
