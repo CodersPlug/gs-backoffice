@@ -1,8 +1,8 @@
-import { Eye, Loader2, Maximize2, Trash2, Paperclip } from "lucide-react"
+import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "@/hooks/use-toast"
-import { useState } from "react"
+import { FooterActions } from "./footer/FooterActions"
 
 interface Attachment {
   url: string;
@@ -62,44 +62,14 @@ export function PinCardFooter({ id, onMaximize, sourceInfo, attachments = [] }: 
   }
 
   return (
-    <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
-      <div className="flex items-center justify-between">
-        <button 
-          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <Loader2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-          )}
-        </button>
-        <div className="flex items-center gap-2">
-          {attachments && attachments.length > 0 && (
-            <button 
-              className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-              onClick={handleViewFirstAttachment}
-            >
-              <Paperclip className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-            </button>
-          )}
-          {sourceInfo && (
-            <button 
-              className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-              onClick={handleViewAttachment}
-            >
-              <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-            </button>
-          )}
-          <button 
-            className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
-            onClick={onMaximize}
-          >
-            <Maximize2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+    <FooterActions 
+      isDeleting={isDeleting}
+      onDelete={handleDelete}
+      onMaximize={onMaximize}
+      onViewAttachment={handleViewAttachment}
+      onViewFirstAttachment={handleViewFirstAttachment}
+      hasAttachments={attachments.length > 0}
+      hasSourceInfo={!!sourceInfo}
+    />
+  );
 }
