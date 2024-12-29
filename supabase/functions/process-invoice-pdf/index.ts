@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-
-// Import specific version of pdfjs worker and set it up
-import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.mjs';
-import { GlobalWorkerOptions } from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.mjs';
+import * as pdfjsLib from 'https://esm.sh/pdfjs-dist@3.11.174';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,8 +36,8 @@ serve(async (req) => {
     const pdfData = await pdfResponse.arrayBuffer();
     console.log('PDF fetched successfully, loading document...');
 
-    // Set worker source
-    GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.mjs';
+    // Configure PDF.js for Node environment
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsLib.PDFWorker;
 
     // Load the PDF document
     const pdfDocument = await pdfjsLib.getDocument({ data: pdfData }).promise;
