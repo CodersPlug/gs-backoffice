@@ -1,7 +1,8 @@
-import { Maximize2, Trash2 } from "lucide-react"
+import { Loader2, Maximize2, Trash2 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "@/hooks/use-toast"
+import { useState } from "react"
 
 interface PinCardFooterProps {
   id: string
@@ -10,8 +11,10 @@ interface PinCardFooterProps {
 
 export function PinCardFooter({ id, onMaximize }: PinCardFooterProps) {
   const queryClient = useQueryClient()
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
+    setIsDeleting(true)
     try {
       const { error } = await supabase
         .from('kanban_items')
@@ -34,6 +37,8 @@ export function PinCardFooter({ id, onMaximize }: PinCardFooterProps) {
         description: "Hubo un problema al eliminar la tarjeta",
         duration: 3000,
       })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -41,10 +46,15 @@ export function PinCardFooter({ id, onMaximize }: PinCardFooterProps) {
     <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
       <div className="flex items-center justify-between">
         <button 
-          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
+          className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleDelete}
+          disabled={isDeleting}
         >
-          <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+          )}
         </button>
         <button 
           className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
