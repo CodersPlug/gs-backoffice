@@ -14,11 +14,17 @@ export const useFileUpload = (onSuccess?: (fileName: string) => void) => {
     formData.append('file', file);
 
     try {
+      console.log("Uploading file...");
       const { data, error } = await supabase.functions.invoke('upload-and-create-card', {
         body: formData,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+
+      console.log("Upload successful:", data);
       
       // Invalidate the kanban query to trigger a refresh
       await queryClient.invalidateQueries({ queryKey: ['kanban'] });
@@ -26,6 +32,7 @@ export const useFileUpload = (onSuccess?: (fileName: string) => void) => {
       onSuccess?.(file.name);
     } catch (error) {
       console.error('Error:', error);
+      throw error; // Re-throw to let the UI handle the error
     } finally {
       setIsLoading(false);
     }

@@ -43,6 +43,7 @@ export type Database = {
           due_date: string | null
           icon: string | null
           id: string
+          image: string | null
           media: Json | null
           order_index: number
           priority: string | null
@@ -65,6 +66,7 @@ export type Database = {
           due_date?: string | null
           icon?: string | null
           id?: string
+          image?: string | null
           media?: Json | null
           order_index: number
           priority?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           due_date?: string | null
           icon?: string | null
           id?: string
+          image?: string | null
           media?: Json | null
           order_index?: number
           priority?: string | null
