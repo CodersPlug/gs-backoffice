@@ -36,82 +36,84 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
       return;
     }
 
-    // Find the source and destination columns
-    let sourceColumn: Column | undefined;
-    let destinationColumn: Column | undefined;
-    let activeItemIndex = -1;
-    let overItemIndex = -1;
+    let sourceColumnId: string | undefined;
+    let destinationColumnId: string | undefined;
+    let sourceIndex = -1;
+    let destinationIndex = -1;
 
-    // Find source column and item index
-    for (const column of columns) {
+    // Find source column and index
+    columns.forEach(column => {
       const itemIndex = column.items.findIndex(item => item.id === active.id);
       if (itemIndex !== -1) {
-        sourceColumn = column;
-        activeItemIndex = itemIndex;
-        break;
+        sourceColumnId = column.id;
+        sourceIndex = itemIndex;
       }
-    }
+    });
 
-    // Find destination column and item index
-    for (const column of columns) {
+    // Find destination column and index
+    columns.forEach(column => {
       if (over.id === column.id) {
         // Dropped directly on a column
-        destinationColumn = column;
-        overItemIndex = column.items.length;
+        destinationColumnId = column.id;
+        destinationIndex = column.items.length;
       } else {
         // Dropped on an item
         const itemIndex = column.items.findIndex(item => item.id === over.id);
         if (itemIndex !== -1) {
-          destinationColumn = column;
-          overItemIndex = itemIndex;
-          break;
+          destinationColumnId = column.id;
+          destinationIndex = itemIndex;
         }
       }
-    }
+    });
 
-    if (!sourceColumn || !destinationColumn || activeItemIndex === -1) {
+    if (!sourceColumnId || !destinationColumnId || sourceIndex === -1) {
       setActiveId(null);
       setActivePinData(null);
       return;
     }
 
-    setColumns(prevColumns => {
-      const newColumns = [...prevColumns];
-      const sourceColumnIndex = newColumns.findIndex(col => col.id === sourceColumn!.id);
-      const destinationColumnIndex = newColumns.findIndex(col => col.id === destinationColumn!.id);
-      
-      const sourceItems = [...newColumns[sourceColumnIndex].items];
-      const [movedItem] = sourceItems.splice(activeItemIndex, 1);
-      
-      const destinationItems = [...newColumns[destinationColumnIndex].items];
-      destinationItems.splice(overItemIndex, 0, movedItem);
-
-      newColumns[sourceColumnIndex] = {
-        ...newColumns[sourceColumnIndex],
-        items: sourceItems
-      };
-      
-      newColumns[destinationColumnIndex] = {
-        ...newColumns[destinationColumnIndex],
-        items: destinationItems
-      };
-
-      // Update the database
-      supabase
+    // Update the database first
+    try {
+      const { error } = await supabase
         .from('kanban_items')
         .update({
-          column_id: destinationColumn!.id,
-          order_index: overItemIndex
+          column_id: destinationColumnId,
+          order_index: destinationIndex
         })
-        .eq('id', movedItem.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Error updating item:', error);
-          }
+        .eq('id', active.id);
+
+      if (error) {
+        console.error('Error updating item:', error);
+        return;
+      }
+
+      // If database update successful, update local state
+      setColumns(prevColumns => {
+        const newColumns = [...prevColumns];
+        const sourceColumn = newColumns.find(col => col.id === sourceColumnId);
+        const destColumn = newColumns.find(col => col.id === destinationColumnId);
+
+        if (!sourceColumn || !destColumn) return prevColumns;
+
+        const [movedItem] = sourceColumn.items.splice(sourceIndex, 1);
+        destColumn.items.splice(destinationIndex, 0, movedItem);
+
+        // Update order indices for affected items
+        destColumn.items.forEach((item, index) => {
+          supabase
+            .from('kanban_items')
+            .update({ order_index: index })
+            .eq('id', item.id)
+            .then(({ error }) => {
+              if (error) console.error('Error updating order index:', error);
+            });
         });
 
-      return newColumns;
-    });
+        return newColumns;
+      });
+    } catch (error) {
+      console.error('Error in drag end handler:', error);
+    }
 
     setActiveId(null);
     setActivePinData(null);
