@@ -26,57 +26,28 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch the PDF content
+    // Fetch the PDF content as an ArrayBuffer
     const pdfResponse = await fetch(pdfUrl);
     if (!pdfResponse.ok) {
       throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
     }
 
-    // Get the raw text and sanitize it
-    const rawText = await pdfResponse.text();
-    console.log('Raw text retrieved, sanitizing...');
+    // Get the filename from the URL
+    const filename = pdfUrl.split('/').pop() || 'document.pdf';
     
-    // Sanitize text by removing problematic characters and normalizing whitespace
-    const pdfText = rawText
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
-      .replace(/\\./g, ' ') // Replace escape sequences with space
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
-
-    console.log('Text sanitized successfully');
-
-    // Simple regex patterns for common invoice fields
-    const patterns = {
-      invoiceNumber: /(?:Invoice|Factura)[\s#:]+([A-Z0-9-]+)/i,
-      date: /(?:Date|Fecha)[\s:]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i,
-      total: /(?:Total|Amount|Monto)[\s:]*[\$€]?\s*([\d,.]+)/i,
-      supplier: /(?:From|De|Supplier|Proveedor)[\s:]+([^\n]+)/i,
-    };
-
-    // Extract data using regex
-    const extractedData = {
-      invoiceNumber: pdfText.match(patterns.invoiceNumber)?.[1] || 'Not found',
-      date: pdfText.match(patterns.date)?.[1] || 'Not found',
-      total: pdfText.match(patterns.total)?.[1] || 'Not found',
-      supplier: pdfText.match(patterns.supplier)?.[1] || 'Not found',
-    };
-
-    console.log('Extracted data:', extractedData);
-
-    // Format the extracted information
-    const formattedInfo = `
-Invoice Number: ${extractedData.invoiceNumber}
-Date: ${extractedData.date}
-Total Amount: ${extractedData.total}
-Supplier: ${extractedData.supplier}
-    `.trim();
-
-    // Update the kanban item with the extracted information
+    // Create a simple description
+    const description = `PDF document uploaded: ${filename}`;
+    
+    // Update the kanban item with basic information
     const { error: updateError } = await supabase
       .from('kanban_items')
       .update({ 
-        description: formattedInfo,
-        content: JSON.stringify(extractedData)
+        description: description,
+        content: JSON.stringify({
+          filename,
+          uploadDate: new Date().toISOString(),
+          fileType: 'PDF'
+        })
       })
       .eq('source_info', pdfUrl);
 
@@ -89,7 +60,7 @@ Supplier: ${extractedData.supplier}
       JSON.stringify({ 
         success: true,
         message: 'PDF processed successfully',
-        extractedData 
+        description 
       }),
       { 
         headers: { 
