@@ -70,16 +70,30 @@ const initialColumns = [
 const Index = () => {
   const [columns, setColumns] = useState(initialColumns);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [activePinData, setActivePinData] = useState<any>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement threshold before drag starts
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id);
+    const { active } = event;
+    setActiveId(active.id);
+
+    // Find the pin data for the drag overlay
+    const activeColumnId = String(active.id).split('-')[0];
+    const activeItemIndex = parseInt(String(active.id).split('-')[1]);
+    const activeColumn = columns.find(col => col.id === activeColumnId);
+    if (activeColumn) {
+      setActivePinData(activeColumn.items[activeItemIndex]);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -87,6 +101,7 @@ const Index = () => {
 
     if (!over) {
       setActiveId(null);
+      setActivePinData(null);
       return;
     }
 
@@ -139,6 +154,7 @@ const Index = () => {
     }
 
     setActiveId(null);
+    setActivePinData(null);
   };
 
   return (
@@ -156,7 +172,7 @@ const Index = () => {
             {columns.map((column) => (
               <div
                 key={column.id}
-                className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4"
+                className="flex-1 min-w-[300px] bg-dark-muted/50 rounded-lg p-4 transition-colors duration-200 hover:bg-dark-muted/60"
               >
                 <h2 className="text-lg font-semibold mb-4 text-dark-foreground">
                   {column.title}
@@ -180,6 +196,14 @@ const Index = () => {
               </div>
             ))}
           </div>
+
+          <DragOverlay>
+            {activeId && activePinData ? (
+              <div className="opacity-80 rotate-3 scale-105 transition-transform">
+                <PinCard {...activePinData} id={activeId} />
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </main>
 
