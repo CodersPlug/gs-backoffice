@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, Eye } from "lucide-react";
+import { MessageCircle, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ interface PinCardProps {
 
 const PinCard = ({ image, title, description, id }: PinCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEyeHovered, setIsEyeHovered] = useState(false);
   
   const {
     attributes,
@@ -60,11 +61,11 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
         }}
       >
         <div className="relative p-4 pb-2">
-          <div className="flex-1">
-            <h3 className="font-medium text-gray-900 dark:text-dark-foreground mb-1 line-clamp-1">{title}</h3>
+          <div className="flex-1 space-y-3">
+            <h3 className="font-medium text-gray-900 dark:text-dark-foreground line-clamp-1">{title}</h3>
             <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">{description}</p>
           </div>
-          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-dark-border">
+          <div className="mt-4 pt-2 border-t border-gray-100 dark:border-dark-border">
             <div className="flex items-center justify-end">
               <button 
                 className="p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-dark-muted transition-colors cursor-pointer"
@@ -72,8 +73,14 @@ const PinCard = ({ image, title, description, id }: PinCardProps) => {
                   e.stopPropagation();
                   setIsOpen(true);
                 }}
+                onMouseEnter={() => setIsEyeHovered(true)}
+                onMouseLeave={() => setIsEyeHovered(false)}
               >
-                <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+                {isEyeHovered ? (
+                  <EyeOff className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400 dark:text-dark-foreground/60" />
+                )}
               </button>
             </div>
           </div>
