@@ -77,9 +77,7 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         const destinationColumn = columns.find(col => col.id === destinationColumnId);
         
         if (destinationColumn) {
-          const newOrderIndex = destinationColumn.items.length;
-          await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
-          
+          // Update local state first
           setColumns(prevColumns => {
             const newColumns = [...prevColumns];
             const sourceColumnIndex = newColumns.findIndex(col => col.id === activeColumnId);
@@ -101,6 +99,10 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
             
             return newColumns;
           });
+
+          // Then sync with database
+          const newOrderIndex = destinationColumn.items.length;
+          await updateItemInDatabase(movedItem, destinationColumnId, newOrderIndex);
         }
       } else {
         const overColumnId = String(over.id).split('-')[0];
@@ -114,28 +116,54 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         }
 
         if (activeColumnId === overColumnId) {
-          // Same column drag
+          // Same column drag - Update local state first
           const items = arrayMove(sourceColumn.items, activeItemIndex, overItemIndex);
-          
-          // Update order indexes in database
-          await Promise.all(items.map((item, index) => 
-            updateItemInDatabase(item, activeColumnId, index)
-          ));
-          
           setColumns(prevColumns =>
             prevColumns.map(col =>
               col.id === activeColumnId ? { ...col, items } : col
             )
           );
+          
+          // Then sync with database
+          await Promise.all(items.map((item, index) => 
+            updateItemInDatabase(item, activeColumnId, index)
+          ));
         } else {
-          // Different column drag
-          const newSourceItems = [...sourceColumn.items];
-          newSourceItems.splice(activeItemIndex, 1);
+          // Different column drag - Update local state first
+          setColumns(prevColumns => {
+            const newColumns = [...prevColumns];
+            const sourceColumnIndex = newColumns.findIndex(col => col.id === activeColumnId);
+            const destinationColumnIndex = newColumns.findIndex(col => col.id === overColumnId);
+            
+            if (sourceColumnIndex !== -1 && destinationColumnIndex !== -1) {
+              const newSourceItems = [...sourceColumn.items];
+              newSourceItems.splice(activeItemIndex, 1);
+              
+              const newDestinationItems = [...destinationColumn.items];
+              newDestinationItems.splice(overItemIndex, 0, movedItem);
+              
+              newColumns[sourceColumnIndex] = {
+                ...sourceColumn,
+                items: newSourceItems
+              };
+              
+              newColumns[destinationColumnIndex] = {
+                ...destinationColumn,
+                items: newDestinationItems
+              };
+            }
+            
+            return newColumns;
+          });
           
-          const newDestinationItems = [...destinationColumn.items];
-          newDestinationItems.splice(overItemIndex, 0, movedItem);
+          // Then sync with database
+          const newSourceItems = sourceColumn.items.filter((_, index) => index !== activeItemIndex);
+          const newDestinationItems = [
+            ...destinationColumn.items.slice(0, overItemIndex),
+            movedItem,
+            ...destinationColumn.items.slice(overItemIndex)
+          ];
           
-          // Update order indexes in database
           await Promise.all([
             ...newSourceItems.map((item, index) => 
               updateItemInDatabase(item, activeColumnId, index)
@@ -144,18 +172,6 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
               updateItemInDatabase(item, overColumnId, index)
             )
           ]);
-          
-          setColumns(prevColumns =>
-            prevColumns.map(col => {
-              if (col.id === activeColumnId) {
-                return { ...col, items: newSourceItems };
-              }
-              if (col.id === overColumnId) {
-                return { ...col, items: newDestinationItems };
-              }
-              return col;
-            })
-          );
         }
       }
     } catch (error) {
@@ -165,6 +181,9 @@ export const useKanbanDrag = (initialColumns: Column[]) => {
         description: "Failed to update items positions",
         variant: "destructive",
       });
+      
+      // Revert to initial columns state on error
+      setColumns(initialColumns);
     }
 
     setActiveId(null);
