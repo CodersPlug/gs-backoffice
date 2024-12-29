@@ -115,13 +115,13 @@ const KanbanBoard = () => {
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-full">
-      <p className="text-dark-foreground">Loading kanban board...</p>
+      <p className="text-dark-foreground">Cargando tablero kanban...</p>
     </div>;
   }
 
   if (error) {
     return <div className="flex justify-center items-center h-full">
-      <p className="text-red-500">Error loading kanban board. Please try again later.</p>
+      <p className="text-red-500">Error al cargar el tablero kanban. Por favor, intentá nuevamente más tarde.</p>
     </div>;
   }
 
