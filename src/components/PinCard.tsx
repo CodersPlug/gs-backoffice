@@ -59,7 +59,10 @@ const PinCard = ({
             progress={progress}
             sourceInfo={sourceInfo}
           />
-          <PinCardFooter onOpenDialog={() => setIsOpen(true)} />
+          <PinCardFooter 
+            onOpenDialog={() => setIsOpen(true)} 
+            id={id.toString()}
+          />
         </div>
       </PinCardDragWrapper>
 

@@ -38,6 +38,7 @@ export type Database = {
           comments: Json | null
           content: string | null
           created_at: string
+          deleted: boolean | null
           description: string | null
           due_date: string | null
           icon: string | null
@@ -59,6 +60,7 @@ export type Database = {
           comments?: Json | null
           content?: string | null
           created_at?: string
+          deleted?: boolean | null
           description?: string | null
           due_date?: string | null
           icon?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           comments?: Json | null
           content?: string | null
           created_at?: string
+          deleted?: boolean | null
           description?: string | null
           due_date?: string | null
           icon?: string | null

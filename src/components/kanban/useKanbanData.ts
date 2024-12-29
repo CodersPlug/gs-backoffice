@@ -44,6 +44,7 @@ export const useKanbanData = () => {
       const { data: items, error: itemsError } = await supabase
         .from('kanban_items')
         .select('*')
+        .eq('deleted', false)  // Only fetch non-deleted items
         .order('order_index');
 
       if (itemsError) {
