@@ -1,43 +1,45 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log('Starting PDF processing...');
     
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { pdfUrl } = await req.json()
+    const { pdfUrl } = await req.json();
     
     if (!pdfUrl) {
-      throw new Error('No PDF URL provided')
+      throw new Error('No PDF URL provided');
     }
 
     console.log('Processing PDF from URL:', pdfUrl);
 
     // Download the PDF content
-    const response = await fetch(pdfUrl)
+    const response = await fetch(pdfUrl);
     if (!response.ok) {
-      throw new Error(`Failed to fetch PDF: ${response.statusText}`)
+      throw new Error(`Failed to fetch PDF: ${response.statusText}`);
     }
     
-    const pdfBuffer = await response.arrayBuffer()
-    const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)))
+    const pdfBuffer = await response.arrayBuffer();
+    const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
 
     console.log('PDF downloaded and converted to base64');
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Use OpenAI to extract information
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -89,7 +91,7 @@ serve(async (req) => {
         ],
         max_tokens: 1000,
       }),
-    })
+    });
 
     if (!openAIResponse.ok) {
       const errorData = await openAIResponse.text();
@@ -97,10 +99,10 @@ serve(async (req) => {
       throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
     }
 
-    const data = await openAIResponse.json()
+    const data = await openAIResponse.json();
     console.log('OpenAI response:', data);
     
-    const extractedInfo = data.choices[0].message.content
+    const extractedInfo = data.choices[0].message.content;
 
     console.log('Extracted information:', extractedInfo);
 
@@ -110,7 +112,7 @@ serve(async (req) => {
       .update({ 
         description: extractedInfo,
       })
-      .eq('source_info', pdfUrl)
+      .eq('source_info', pdfUrl);
 
     if (updateError) {
       console.error('Error updating item:', updateError);
@@ -130,9 +132,9 @@ serve(async (req) => {
           'Content-Type': 'application/json' 
         } 
       }
-    )
+    );
   } catch (error) {
-    console.error('Error processing PDF:', error)
+    console.error('Error processing PDF:', error);
     return new Response(
       JSON.stringify({ 
         error: 'Error processing PDF', 
@@ -145,6 +147,6 @@ serve(async (req) => {
         },
         status: 400 
       }
-    )
+    );
   }
-})
+});
