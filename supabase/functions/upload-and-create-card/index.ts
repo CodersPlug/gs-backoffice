@@ -26,8 +26,10 @@ serve(async (req) => {
     )
 
     // Upload file to storage
-    const fileExt = file.name.split('.').pop()
+    const fileExt = file.name.split('.').pop()?.toLowerCase()
     const filePath = `${crypto.randomUUID()}.${fileExt}`
+
+    console.log('Uploading file:', file.name, 'Extension:', fileExt)
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('uploads')
@@ -81,7 +83,8 @@ serve(async (req) => {
     if (cardError) throw cardError
 
     // If it's a PDF, process it to extract invoice information
-    if (fileExt.toLowerCase() === 'pdf') {
+    if (fileExt === 'pdf') {
+      console.log('Processing PDF file:', publicUrl)
       try {
         const processingResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/process-invoice-pdf`, {
           method: 'POST',
@@ -93,10 +96,16 @@ serve(async (req) => {
         })
 
         if (!processingResponse.ok) {
-          console.error('Error processing PDF:', await processingResponse.text())
+          const errorText = await processingResponse.text()
+          console.error('Error processing PDF:', errorText)
+          throw new Error(`Error processing PDF: ${errorText}`)
         }
+
+        const processingResult = await processingResponse.json()
+        console.log('PDF processing result:', processingResult)
       } catch (processError) {
         console.error('Error calling PDF processor:', processError)
+        throw processError
       }
     }
 
@@ -113,6 +122,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error processing upload:', error)
     return new Response(
       JSON.stringify({ 
         error: 'Error al procesar el archivo', 
