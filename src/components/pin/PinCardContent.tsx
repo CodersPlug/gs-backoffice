@@ -39,20 +39,21 @@ const PinCardContent = ({
     parsedContent = null;
   }
 
-  // Show content based on type
+  // Show content based on type, excluding PDF technical details
   const shouldShowContent = content && 
     !content.includes('[Ver archivo]') && 
     !content.includes('bamdlnybhcqkiihpwdlz.supabase.co') &&
     !content.includes('https://') &&
     !content.includes('http://') &&
-    !content.includes(sourceInfo || '');
+    !content.includes(sourceInfo || '') &&
+    (!parsedContent?.fileType || parsedContent.fileType !== 'PDF');
 
   return (
     <div className="flex-1 space-y-3">
       <TitleSection icon={icon} title={title} />
 
       <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">
-        {description}
+        {description.replace(/PDF document: .*\.pdf/, 'PDF document')}
       </p>
 
       {shouldShowContent && parsedContent?.fullText && (
