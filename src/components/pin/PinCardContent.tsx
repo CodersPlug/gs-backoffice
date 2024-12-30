@@ -35,9 +35,15 @@ const PinCardContent = ({
       parsedContent = JSON.parse(content);
     }
   } catch (e) {
-    // If parsing fails, use content as is
     parsedContent = null;
   }
+
+  // Clean up description for PDFs
+  const cleanDescription = description
+    .replace(/PDF document: .*\.pdf/, 'PDF document')
+    .replace(/{"filename":".*"}/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   // Show content based on type, excluding PDF technical details
   const shouldShowContent = content && 
@@ -53,7 +59,7 @@ const PinCardContent = ({
       <TitleSection icon={icon} title={title} />
 
       <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">
-        {description.replace(/PDF document: .*\.pdf/, 'PDF document')}
+        {cleanDescription}
       </p>
 
       {shouldShowContent && parsedContent?.fullText && (
