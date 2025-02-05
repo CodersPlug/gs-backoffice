@@ -56,6 +56,7 @@ const PinCard = ({
       <PinCardDragWrapper id={id}>
         <div className="relative p-4 pb-2">
           <PinCardContent 
+            id={id.toString()}
             title={title}
             description={description}
             icon={icon}

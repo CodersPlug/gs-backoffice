@@ -4,6 +4,7 @@ import MetaInfo from './card/MetaInfo';
 import ProgressBar from './card/ProgressBar';
 
 interface PinCardContentProps {
+  id: string;
   title: string;
   description: string;
   icon?: string;
@@ -17,6 +18,7 @@ interface PinCardContentProps {
 }
 
 const PinCardContent = ({ 
+  id,
   title, 
   description,
   icon,
@@ -56,7 +58,7 @@ const PinCardContent = ({
 
   return (
     <div className="flex-1 space-y-3">
-      <TitleSection icon={icon} title={title} />
+      <TitleSection icon={icon} title={title} id={id} />
 
       <p className="text-sm text-gray-600 dark:text-dark-foreground/80 line-clamp-2">
         {cleanDescription}
