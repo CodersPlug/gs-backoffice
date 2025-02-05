@@ -113,6 +113,45 @@ export type Database = {
           },
         ]
       }
+      price_lists: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          effective_date: string
+          file_path: string
+          filename: string
+          id: string
+          metadata: Json | null
+          provider_name: string
+          size: number | null
+          status: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          effective_date: string
+          file_path: string
+          filename: string
+          id?: string
+          metadata?: Json | null
+          provider_name: string
+          size?: number | null
+          status?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          effective_date?: string
+          file_path?: string
+          filename?: string
+          id?: string
+          metadata?: Json | null
+          provider_name?: string
+          size?: number | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           content_type: string | null
