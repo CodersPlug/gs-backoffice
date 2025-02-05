@@ -113,6 +113,54 @@ export type Database = {
           },
         ]
       }
+      videos: {
+        Row: {
+          content_type: string | null
+          created_at: string | null
+          delivery_date: string | null
+          file_path: string
+          filename: string
+          id: string
+          metadata: Json | null
+          size: number | null
+          status: string | null
+          stock_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          file_path: string
+          filename: string
+          id?: string
+          metadata?: Json | null
+          size?: number | null
+          status?: string | null
+          stock_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          file_path?: string
+          filename?: string
+          id?: string
+          metadata?: Json | null
+          size?: number | null
+          status?: string | null
+          stock_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
